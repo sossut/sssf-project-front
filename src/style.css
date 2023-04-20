@@ -123,7 +123,11 @@ h1 {
 .spot-content-text {
   padding: 0.2rem 0.5rem;
 }
+.pallet-product-div {
+  display: flex;
+  flex-direction: row;
 
+}
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

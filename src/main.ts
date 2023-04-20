@@ -349,33 +349,59 @@ const displayProducts = async () => {
   try {
 
     const pallet = await getPalletById(palletId);
-    console.log(pallet);
+
     productsList.innerHTML = '';
     for (let i = 0; i < pallet.products.length; i++) {
+      const div = document.createElement('div');
       const li = document.createElement('li');
+      const productCode = document.createElement('p');
+      const deleteButton = document.createElement('button');
       li.setAttribute('data-id', pallet.products[i].id);
-      li.innerHTML = `${pallet.products[i].code}`;
+      div.classList.add('pallet-product-div');
+      productCode.innerHTML = `${pallet.products[i].code}`;
+      deleteButton.innerHTML = 'Poista';
+      deleteButton.classList.add('pallet-product-delete-button');
+      div.appendChild(productCode);
+      div.appendChild(deleteButton);
+      li.appendChild(div);
       productsList.appendChild(li);
     }
+
   } catch (error) {
     console.log(error);
   }
 }
-addProductButton.addEventListener('click', async (event) => {
-  event.preventDefault();
-  try {
 
-    const li = document.createElement('li');
-    const productId = productsSelect.value
-    const product = await getProductById(productId);
-    li.innerHTML = `${product.code}`;
-    li.setAttribute('data-id', product.id);
-    productsList.appendChild(li);
-  } catch (error) {
-    console.log(error);
-  }
-});
-palletForm.addEventListener('submit', async (event) => {
+try {
+  addProductButton.addEventListener('click', async (event) => {
+    event.preventDefault();
+    try {
+  
+      const li = document.createElement('li');
+      const div = document.createElement('div');
+      const productCode = document.createElement('p');
+      const deleteButton = document.createElement('button');
+      const productId = productsSelect.value;
+      const product = await getProductById(productId);
+      div.classList.add('pallet-product-div');
+      productCode.innerHTML = `${product.code}`;
+      deleteButton.innerHTML = 'Poista';
+      deleteButton.classList.add('pallet-product-delete-button');
+      div.appendChild(productCode);
+      div.appendChild(deleteButton);
+      li.setAttribute('data-id', product.id);
+      li.appendChild(div);
+      productsList.appendChild(li);
+    } catch (error) {
+      console.log(error);
+    }
+  });
+  
+} catch (error) {
+  console.log(error);
+}
+try {
+  palletForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   try {
     const array = [];
@@ -388,6 +414,35 @@ palletForm.addEventListener('submit', async (event) => {
     console.log(error);
   }
 });
+} catch (error) {
+  console.log(error);
+}  
+
+// const deletePalletProductButton = document.querySelectorAll<HTMLButtonElement>('.pallet-product-delete-button');
+
+// forEach loop for the delete buttons to delete the product from the pallet
+// deletePalletProductButton.forEach(button => {
+//   button.addEventListener('click', () => {
+
+//     try {
+//       console.log('moro');
+//       // const li = button.parentElement?.parentElement as HTMLLIElement;
+//       // productsList.removeChild(li);
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
+// });
+document.addEventListener('click', async (event) => {
+  if (event.target instanceof HTMLElement) {
+  const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
+    if (deletePalletProductButton) {
+      const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
+      productsList.removeChild(li);
+    }
+  }
+});
+
 
 await displayProducts();
 await createPalletSelect();
