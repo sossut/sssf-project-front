@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="module" src="/src/main.ts"></script>
+    <title>Vite + TS</title>
+  </head>
+  <body>
+    <!--Nav four links Varasto, Lisää Lava, Lisää Tuote, Etsi, Asetukset-->
+    <nav>
+      <ul>
+        <li><a href="index.html">Varasto</a></li>
+        <li><a href="pallet.html">Lisää Lava</a></li>
+        <li><a href="product.html">Lisää Tuote</a></li>
+        <li><a href="search.html">Etsi</a></li>
+        <li><a href="settings.html">Asetukset</a></li>
+      </ul>
+    </nav>
+    <main>
+      <h1>Tuote</h1>
+
+      <form id="form-pallet">
+        <h3>Lavalla olevat tuotteet</h3>
+        <ul id="products-on-pallet"></ul>
+        <label for="products">Tuotteet</label>
+        <select type="select" name="products" id="products" form="form-pallet">
+          Valitse Tuote
+        </select>
+        <button id="add-product">Lisää Tuote</button>
+
+        <input id="submit-pallet" type="submit" value="Tallenna" />
+      </form>
+    </main>
+  </body>
+</html>
