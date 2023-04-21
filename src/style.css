@@ -26,9 +26,18 @@ a {
 a:hover {
   color: #535bf2;
 }
+nav {
+  min-width: fit-content;
+  float: top;
+}
+main {
+  padding: 1rem;
+  margin-top: 100px;
+}
 #warehouse {
     overflow: auto;
-      white-space: nowrap;
+    white-space: nowrap;
+
 }
 tbody {
   display: flex;
@@ -97,7 +106,6 @@ td {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }

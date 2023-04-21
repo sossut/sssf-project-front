@@ -1,7 +1,7 @@
 import './style.css'
 
 import { doGraphQLFetch } from './graphql/fetch';
-import { addGap, addRow, addSpot, getAllRows, getAllSpots, getGaps, updateRow, getAllPalletSpots, getOnePalletSpot, getAllProducts, getOnePallet, getOneProduct, updateToPallet } from './graphql/queries';
+import { addGap, addRow, addSpot, getAllRows, getAllSpots, getGaps, updateRow, getAllPalletSpots, getOnePalletSpot, getAllProducts, getOnePallet, getOneProduct, updateToPallet, deletePalletQuery, createNewPalletSpot, createNewPallet, updateToPalletSpot, palletsByProductQuery, palletSpotsByPalletQuery, productByCodeQuery } from './graphql/queries';
 
 
 const apiUrl = 'http://localhost:3000/graphql';
@@ -42,6 +42,26 @@ const getPalletSpots = async () => {
     console.log(error);
   }
 }
+const addPalletSpot = async (spotId: string, palletId: string) => {
+  try {
+    console.log('create pallet spot');
+    const palletSpot = await doGraphQLFetch(apiUrl, createNewPalletSpot, {spot: spotId, pallet: palletId});
+    console.log(palletSpot);
+    if (palletSpot) return palletSpot.createPalletSpot;
+  } catch (error) {
+    console.log(error);
+  }
+}
+const updatePalletSpot = async (psId: string, palletId: string) => {
+  try {
+    console.log('update pallet spot');
+    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpot, {updatePalletSpotId: psId, pallet: palletId});
+    console.log(palletSpot);
+    if (palletSpot) return palletSpot.updatePalletSpot;
+  } catch (error) {
+    console.log(error);
+  }
+}
 const getPalletSpotById = async (id: string) => {
   try {
     console.log('get pallet spot by id');
@@ -62,12 +82,30 @@ const getPalletById = async (id: string) => {
     console.log(error);
   }
 }
+const addPallet = async (products: Array<string>) => {
+  try {
+    const pallet = await doGraphQLFetch(apiUrl, createNewPallet, {products: products });
+    if (pallet) return pallet.createPallet;
+  } catch (error) {
+    console.log(error);
+  }
+}
 const updatePallet = async (id: string, products: string[]) => {
   try {
     console.log('update pallet');
     const pallet = await doGraphQLFetch(apiUrl, updateToPallet, {updatePalletId: id, products: products});
 
     if (pallet) return pallet.updatePallet;
+  } catch (error) {
+    console.log(error);
+  }
+}
+const deletePallet = async (id: string) => {
+  try {
+    console.log('delete pallet');
+    const pallet = await doGraphQLFetch(apiUrl, deletePalletQuery, {deletePalletId: id});
+
+    if (pallet) return pallet.deletePallet;
   } catch (error) {
     console.log(error);
   }
@@ -93,6 +131,39 @@ const getProductById = async (id: string) => {
   }
 }
 
+const palletsByProduct = async (productId: string) => {
+  try {
+    console.log('get pallets by product');
+    const pallets = await doGraphQLFetch(apiUrl, palletsByProductQuery, {product: productId});
+    console.log(pallets);
+    if (pallets) return pallets.palletsByProduct;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const palletSpotsByPallet = async (palletId: string) => {
+  try {
+    console.log('get pallet spots by pallet');
+    const palletSpots = await doGraphQLFetch(apiUrl, palletSpotsByPalletQuery, {pallet: palletId});
+
+    if (palletSpots) return palletSpots.palletSpotsByPallet;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+const productByCode = async (code: string) => {
+  try {
+    console.log('get product by code');
+    const product = await doGraphQLFetch(apiUrl, productByCodeQuery, {code: code});
+
+    if (product) return product.productByCode;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 // in div warehouse create a table with the number of rows and gaps and spots
 await getSpots();
 //create the table
@@ -104,6 +175,7 @@ const createTable = async () => {
     warehouse.appendChild(table);
     table.appendChild(tbody);
     const palletSpots = await getPalletSpots();
+    
     const rows = await getRows();
     for (let i = 0; i < rows.length; i++) {
       const tr = document.createElement('tr');
@@ -128,6 +200,7 @@ const createTable = async () => {
 
           for (let k = 0; k < spots.length; k++) {
             if (spots[k].gap.id === gaps.gaps[j].id) {
+              
               // const td = document.createElement('td');
 
               // td.innerHTML = `${spots.spots[k].spotNumber}`;
@@ -149,22 +222,30 @@ const createTable = async () => {
               spotContentButton.innerHTML = 'Muokkaa';
               spotContentButton.classList.add('spot-content-button');
               spotContentButton.addEventListener('click', () => {});
-              for (let l = 0; l < palletSpots.length; l++) {
-                if (palletSpots[l].spot.id === spots[k].id) {
-                  spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
-                  for (let m = 0; m < palletSpots[l].pallet.products.length; m++) {
-                    if (m === palletSpots[l].pallet.products.length - 1) {
-                      spotContentText.innerHTML += `${palletSpots[l].pallet.products[m].code}`;
-                    } else {
-                      
-                      spotContentText.innerHTML += `${palletSpots[l].pallet.products[m].code}, `;
+              if (palletSpots[k]) {
+                td3.setAttribute('data-pallet-spot-id', `${palletSpots[k].id}`);
+              }
+              try {
+                
+                for (let l = 0; l < palletSpots.length; l++) {
+                  if (palletSpots[l].spot.id === spots[k].id) {
+                    spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
+                    for (let m = 0; m < palletSpots[l].pallet.products.length; m++) {
+                      if (m === palletSpots[l].pallet.products.length - 1) {
+                        spotContentText.innerHTML += `${palletSpots[l].pallet.products[m].code}`;
+                      } else {
+                        
+                        spotContentText.innerHTML += `${palletSpots[l].pallet.products[m].code}, `;
+                      }
                     }
-                  }
-                  
-                } else {
-                  
-                  spotContentText.innerHTML = 'Paikka';
+                    
+                  } 
+                   
                 }
+                
+                // 
+              } catch (error) {
+                console.log(error);
               }
               spotContent.appendChild(spotContentText);
               spotContent.appendChild(spotContentButton);
@@ -178,7 +259,7 @@ const createTable = async () => {
               tr2.classList.add('spot-row');
               td2.classList.add('spot-number');
               td3.classList.add('spot-content');
-              td3.setAttribute('data-spot-id', `${spots[k].id}`);
+              tr2.setAttribute('data-spot-id', `${spots[k].id}`);
             }
           }
         }
@@ -195,9 +276,12 @@ await createTable();
 const spotContentButtons = document.querySelectorAll<HTMLButtonElement>('.spot-content-button');
 spotContentButtons.forEach(button => {
   button.addEventListener('click', () => {
+    
     const palletDiv= button.parentElement;
+    const spotId = button.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
+    const palletSpotId = button.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
     const palletId = palletDiv?.getAttribute('data-pallet-id') as string;
-    window.location.href = `pallet.html?palletId=${palletId}`;
+    window.location.href = `pallet.html?palletId=${palletId}&palletSpotId=${palletSpotId}&spotId=${spotId}`;
   });
 });
 
@@ -344,7 +428,22 @@ const createPalletSelect = async () => {
 const queryString = document.location.search;
 const urlParams = new URLSearchParams(queryString);
 const palletId = urlParams.get('palletId') as string;
-console.log(palletId);
+const spotId = urlParams.get('spotId') as string;
+const palletSpotId = urlParams.get('palletSpotId') as string;
+
+// const makeNewPallet = async () => {
+//   try {
+//     const array = [];
+//     for (let i = 0; i < productsList.children.length; i++) {
+//       array.push(productsList.children[i].getAttribute('data-id'));
+//     }
+//     const pallet = await addPallet(array as string[]);
+//     console.log(pallet);
+
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }
 const displayProducts = async () => {
   try {
 
@@ -377,12 +476,18 @@ try {
     event.preventDefault();
     try {
   
+      const productId = productsSelect.value;
+      const product = await getProductById(productId);
+      for (let i = 0; i < productsList.children.length; i++) {
+        if (productsList.children[i].getAttribute('data-id') === productId) {
+          console.log('product already on the list');
+          return;
+        }
+      }
       const li = document.createElement('li');
       const div = document.createElement('div');
       const productCode = document.createElement('p');
       const deleteButton = document.createElement('button');
-      const productId = productsSelect.value;
-      const product = await getProductById(productId);
       div.classList.add('pallet-product-div');
       productCode.innerHTML = `${product.code}`;
       deleteButton.innerHTML = 'Poista';
@@ -404,12 +509,31 @@ try {
   palletForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   try {
+
     const array = [];
     for (let i = 0; i < productsList.children.length; i++) {
       array.push(productsList.children[i].getAttribute('data-id'));
-
+      
     }
-    await updatePallet(palletId, array as string[]);
+    if (palletId === 'null' && palletSpotId !== 'null') {
+
+      const pallet = await addPallet(array as string[]);
+
+      const palletSpot = await updatePalletSpot(palletSpotId, pallet.id);
+      return;
+    }
+    
+    if (palletSpotId === 'null' && palletId === 'null') {
+
+      const pallet = await addPallet(array as string[]);
+      const palletSpot = await addPalletSpot(spotId, pallet.id);
+      return;
+    }
+    if (array.length !== 0) {
+      await updatePallet(palletId, array as string[]);
+    } else {
+      await deletePallet(palletId);
+    }
   } catch (error) {
     console.log(error);
   }
@@ -418,21 +542,7 @@ try {
   console.log(error);
 }  
 
-// const deletePalletProductButton = document.querySelectorAll<HTMLButtonElement>('.pallet-product-delete-button');
 
-// forEach loop for the delete buttons to delete the product from the pallet
-// deletePalletProductButton.forEach(button => {
-//   button.addEventListener('click', () => {
-
-//     try {
-//       console.log('moro');
-//       // const li = button.parentElement?.parentElement as HTMLLIElement;
-//       // productsList.removeChild(li);
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   });
-// });
 document.addEventListener('click', async (event) => {
   if (event.target instanceof HTMLElement) {
   const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
@@ -444,24 +554,32 @@ document.addEventListener('click', async (event) => {
 });
 
 
+// create search function for search form
+const searchForm = document.querySelector('#search-form');
+
+const search = async (query: string) => {
+  const array = [];
+  const productId = await productByCode(query);
+  const pallets = await palletsByProduct(productId.id);
+  for (let i=0; i < pallets.length; i++) {
+    const pallet = await getPalletById(pallets[i].id);
+    array.push(pallet);
+  }
+  return array;
+}
+//after submit go to search.html and display the results
+try {
+  searchForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const searchInput = document.querySelector('#search-input') as HTMLInputElement;
+    const query = searchInput.value;
+    await search(query);
+
+  });
+} catch (error) {
+  console.log(error);
+}
+
+
 await displayProducts();
 await createPalletSelect();
-// document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-//   <div>
-//     <a href="https://vitejs.dev" target="_blank">
-//       <img src="${viteLogo}" class="logo" alt="Vite logo" />
-//     </a>
-//     <a href="https://www.typescriptlang.org/" target="_blank">
-//       <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-//     </a>
-//     <h1>Vite + TypeScript</h1>
-//     <div class="card">
-//       <button id="counter" type="button"></button>
-//     </div>
-//     <p class="read-the-docs">
-//       Click on the Vite and TypeScript logos to learn more
-//     </p>
-//   </div>
-// `
-
-// setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)

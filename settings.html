@@ -12,9 +12,20 @@
     <nav>
       <ul>
         <li><a href="index.html">Varasto</a></li>
-        <li><a href="addPallet.html">Lisää Lava</a></li>
+
         <li><a href="addProduct.html">Lisää Tuote</a></li>
-        <li><a href="search.html">Etsi</a></li>
+        <li>
+          <form id="search-form">
+            <label for="search">Etsi</label>
+            <input
+              type="text"
+              id="search-input"
+              name="search"
+              placeholder="Etsi tuotetta"
+            />
+            <input type="submit" value="Submit" />
+          </form>
+        </li>
         <li><a href="settings.html">Asetukset</a></li>
       </ul>
     </nav>

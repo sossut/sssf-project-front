@@ -108,6 +108,42 @@ const getOnePalletSpot = `query PalletSpotById($palletSpotByIdId: ID!) {
     }
   }
 }`
+const createNewPalletSpot = `mutation CreatePalletSpot($spot: ID!, $pallet: ID) {
+  createPalletSpot(spot: $spot, pallet: $pallet) {
+    id
+    pallet {
+      products {
+        code
+      }
+    }
+    shelf
+    spot {
+      spotNumber
+      gap {
+        gapNumber
+        row {
+          rowNumber
+        }
+      }
+      id
+    }
+  }
+}`
+const updateToPalletSpot = `mutation UpdatePalletSpot($updatePalletSpotId: ID!, $pallet: ID) {
+  updatePalletSpot(id: $updatePalletSpotId, pallet: $pallet) {
+    id
+    pallet {
+      id
+      products {
+        id
+        code
+      }
+    }
+    spot {
+      id
+    }
+  }
+}`
 const updateToPallet = `mutation UpdatePallet($updatePalletId: ID!, $products: [ID]) {
   updatePallet(id: $updatePalletId, products: $products) {
     id
@@ -134,6 +170,15 @@ const getOnePallet = `query PalletById($palletByIdId: ID!) {
     }
   }
 }`
+const deletePalletQuery = `mutation DeletePallet($deletePalletId: ID!) {
+  deletePallet(id: $deletePalletId) {
+    id
+    products {
+      code
+      id
+    }
+  }
+}`
 const getAllProducts = `query Products {
   products {
     id
@@ -149,6 +194,32 @@ const getOneProduct = `query ProductById($productByIdId: ID!) {
     name
   }
 }`
+const palletsByProductQuery = `query PalletsByProduct($product: ID!) {
+  palletsByProduct(product: $product) {
+    id
+    products {
+      code
+    }
+  }
+}`
+const palletSpotsByPalletQuery = `query PalletSpotsByPallet($pallet: ID!) {
+  palletSpotsByPallet(pallet: $pallet) {
+    id
+    pallet {
+      products {
+        id
+        code
+      }
+      id
+    }
+  }
+}`
+const productByCodeQuery = `query ProductByCode($code: String!) {
+  productByCode(code: $code) {
+    id
+    code
+  }
+}`
 export {
   addRow, 
   getAllRows, 
@@ -158,10 +229,16 @@ export {
   addSpot, 
   getAllSpots, 
   getAllPalletSpots, 
+  createNewPalletSpot,
+  updateToPalletSpot,
   getOnePalletSpot, 
   createNewPallet,
   updateToPallet,
   getOnePallet,
+  deletePalletQuery,
   getAllProducts,
-  getOneProduct
+  getOneProduct,
+  palletsByProductQuery,
+  palletSpotsByPalletQuery,
+  productByCodeQuery
 };
