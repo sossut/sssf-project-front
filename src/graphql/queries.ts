@@ -211,6 +211,19 @@ const palletSpotsByPalletQuery = `query PalletSpotsByPallet($pallet: ID!) {
         code
       }
       id
+      arrival
+    }
+    spot {
+      spotNumber
+      id
+      gap {
+        gapNumber
+        row {
+          rowNumber
+          id
+        }
+        id
+      }
     }
   }
 }`

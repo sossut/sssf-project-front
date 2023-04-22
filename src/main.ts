@@ -5,7 +5,7 @@ import { addGap, addRow, addSpot, getAllRows, getAllSpots, getGaps, updateRow, g
 
 
 const apiUrl = 'http://localhost:3000/graphql';
-//get rows from the database
+
 const getRows = async () => {
   try {
     const rows = await doGraphQLFetch(apiUrl, getAllRows, {});
@@ -17,7 +17,7 @@ const getRows = async () => {
 }
 const getSpots = async () => {
   try {
-    console.log('get spots');
+
     let spots;
     if (!localStorage.getItem('spots')) {
       spots = await doGraphQLFetch(apiUrl, getAllSpots, {});
@@ -34,9 +34,9 @@ const getSpots = async () => {
 }
 const getPalletSpots = async () => {
   try {
-    console.log('get pallet spots');
+
     const palletSpots = await doGraphQLFetch(apiUrl, getAllPalletSpots, {});
-    console.log(palletSpots);
+
     if (palletSpots) return palletSpots.palletSpots;
   } catch (error) {
     console.log(error);
@@ -44,7 +44,7 @@ const getPalletSpots = async () => {
 }
 const addPalletSpot = async (spotId: string, palletId: string) => {
   try {
-    console.log('create pallet spot');
+
     const palletSpot = await doGraphQLFetch(apiUrl, createNewPalletSpot, {spot: spotId, pallet: palletId});
     console.log(palletSpot);
     if (palletSpot) return palletSpot.createPalletSpot;
@@ -54,7 +54,7 @@ const addPalletSpot = async (spotId: string, palletId: string) => {
 }
 const updatePalletSpot = async (psId: string, palletId: string) => {
   try {
-    console.log('update pallet spot');
+
     const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpot, {updatePalletSpotId: psId, pallet: palletId});
     console.log(palletSpot);
     if (palletSpot) return palletSpot.updatePalletSpot;
@@ -64,7 +64,7 @@ const updatePalletSpot = async (psId: string, palletId: string) => {
 }
 const getPalletSpotById = async (id: string) => {
   try {
-    console.log('get pallet spot by id');
+
     const palletSpot = await doGraphQLFetch(apiUrl, getOnePalletSpot, {id});
     console.log(palletSpot);
     if (palletSpot) return palletSpot.palletSpot;
@@ -74,7 +74,7 @@ const getPalletSpotById = async (id: string) => {
 }
 const getPalletById = async (id: string) => {
   try {
-    console.log('get pallet by id');
+
     const pallet = await doGraphQLFetch(apiUrl, getOnePallet, {palletByIdId: id});
 
     if (pallet) return pallet.palletById;
@@ -92,7 +92,7 @@ const addPallet = async (products: Array<string>) => {
 }
 const updatePallet = async (id: string, products: string[]) => {
   try {
-    console.log('update pallet');
+
     const pallet = await doGraphQLFetch(apiUrl, updateToPallet, {updatePalletId: id, products: products});
 
     if (pallet) return pallet.updatePallet;
@@ -102,7 +102,7 @@ const updatePallet = async (id: string, products: string[]) => {
 }
 const deletePallet = async (id: string) => {
   try {
-    console.log('delete pallet');
+
     const pallet = await doGraphQLFetch(apiUrl, deletePalletQuery, {deletePalletId: id});
 
     if (pallet) return pallet.deletePallet;
@@ -112,7 +112,7 @@ const deletePallet = async (id: string) => {
 }
 const getProducts = async () => {
   try {
-    console.log('get products');
+
     const products = await doGraphQLFetch(apiUrl, getAllProducts, {});
 
     if (products) return products.products;
@@ -122,7 +122,7 @@ const getProducts = async () => {
 }
 const getProductById = async (id: string) => {
   try {
-    console.log('get product by id');
+
     const product = await doGraphQLFetch(apiUrl, getOneProduct, {productByIdId: id});
 
     if (product) return product.productById;
@@ -133,9 +133,9 @@ const getProductById = async (id: string) => {
 
 const palletsByProduct = async (productId: string) => {
   try {
-    console.log('get pallets by product');
+
     const pallets = await doGraphQLFetch(apiUrl, palletsByProductQuery, {product: productId});
-    console.log(pallets);
+
     if (pallets) return pallets.palletsByProduct;
   } catch (error) {
     console.log(error);
@@ -144,7 +144,7 @@ const palletsByProduct = async (productId: string) => {
 
 const palletSpotsByPallet = async (palletId: string) => {
   try {
-    console.log('get pallet spots by pallet');
+
     const palletSpots = await doGraphQLFetch(apiUrl, palletSpotsByPalletQuery, {pallet: palletId});
 
     if (palletSpots) return palletSpots.palletSpotsByPallet;
@@ -155,7 +155,7 @@ const palletSpotsByPallet = async (palletId: string) => {
 
 const productByCode = async (code: string) => {
   try {
-    console.log('get product by code');
+
     const product = await doGraphQLFetch(apiUrl, productByCodeQuery, {code: code});
 
     if (product) return product.productByCode;
@@ -167,11 +167,13 @@ const productByCode = async (code: string) => {
 // in div warehouse create a table with the number of rows and gaps and spots
 await getSpots();
 //create the table
+const warehouse = document.querySelector<HTMLDivElement>('#warehouse') as HTMLDivElement;
 const createTable = async () => {
   try {
-    const warehouse = document.querySelector<HTMLDivElement>('#warehouse') as HTMLDivElement;
     const table = document.createElement('table');
+    table.classList.add('warehouse-table');
     const tbody = document.createElement('tbody');
+    tbody.classList.add('warehouse-tbody');
     warehouse.appendChild(table);
     table.appendChild(tbody);
     const palletSpots = await getPalletSpots();
@@ -201,15 +203,10 @@ const createTable = async () => {
           for (let k = 0; k < spots.length; k++) {
             if (spots[k].gap.id === gaps.gaps[j].id) {
               
-              // const td = document.createElement('td');
-
-              // td.innerHTML = `${spots.spots[k].spotNumber}`;
-              // const td2 = document.createElement('td');
-              // tr.appendChild(td);
-              
               // create a new table with the number of the spot on the left and Paikka on the right
               const table2 = document.createElement('table');
               const tbody2 = document.createElement('tbody');
+              
               const tr2 = document.createElement('tr');
               const td2 = document.createElement('td');
               td2.innerHTML = `${spots[k].spotNumber}`;
@@ -222,10 +219,13 @@ const createTable = async () => {
               spotContentButton.innerHTML = 'Muokkaa';
               spotContentButton.classList.add('spot-content-button');
               spotContentButton.addEventListener('click', () => {});
-              if (palletSpots[k]) {
-                td3.setAttribute('data-pallet-spot-id', `${palletSpots[k].id}`);
-              }
               try {
+
+                if (palletSpots[0].spot.id === spots[k].id) {
+
+                  td3.setAttribute('data-pallet-spot-id', `${palletSpots[0].id}`);
+                }
+
                 
                 for (let l = 0; l < palletSpots.length; l++) {
                   if (palletSpots[l].spot.id === spots[k].id) {
@@ -431,19 +431,6 @@ const palletId = urlParams.get('palletId') as string;
 const spotId = urlParams.get('spotId') as string;
 const palletSpotId = urlParams.get('palletSpotId') as string;
 
-// const makeNewPallet = async () => {
-//   try {
-//     const array = [];
-//     for (let i = 0; i < productsList.children.length; i++) {
-//       array.push(productsList.children[i].getAttribute('data-id'));
-//     }
-//     const pallet = await addPallet(array as string[]);
-//     console.log(pallet);
-
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
 const displayProducts = async () => {
   try {
 
@@ -542,7 +529,6 @@ try {
   console.log(error);
 }  
 
-
 document.addEventListener('click', async (event) => {
   if (event.target instanceof HTMLElement) {
   const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
@@ -553,25 +539,101 @@ document.addEventListener('click', async (event) => {
   }
 });
 
-
 // create search function for search form
 const searchForm = document.querySelector('#search-form');
-
+const searchInput = document.querySelector('#search-input') as HTMLInputElement;
+const resultModal = document.createElement('div');
 const search = async (query: string) => {
-  const array = [];
-  const productId = await productByCode(query);
-  const pallets = await palletsByProduct(productId.id);
-  for (let i=0; i < pallets.length; i++) {
-    const pallet = await getPalletById(pallets[i].id);
-    array.push(pallet);
+  try {
+    const h3 = document.createElement('h3');
+    resultModal.appendChild(h3);
+    h3.classList.add('result-modal-h3');
+    h3.innerHTML = `Tuote: ${query}`;
+    
+    const resultModalContent = document.createElement('div');
+    const resultModalCloseButton = document.createElement('button');
+
+    resultModal.classList.add('result-modal');
+    resultModalContent.classList.add('result-modal-content');
+
+    resultModalCloseButton.classList.add('result-modal-close-button');
+    resultModalCloseButton.innerHTML = 'Sulje';
+    resultModalCloseButton.addEventListener('click', () => {
+      document.body.removeChild(resultModal);
+    }
+    );
+    resultModalContent.appendChild(resultModalCloseButton);
+
+    resultModal.appendChild(resultModalContent);
+    document.body.appendChild(resultModal);
+    // table for pallets
+    const palletsTable = document.createElement('table');
+  
+    const palletsTableBody = document.createElement('tbody');
+    const palletsTableHeadRow = document.createElement('tr');
+    const palletsTableHeadRowCell1 = document.createElement('th');
+    const palletsTableHeadRowCell2 = document.createElement('th');
+    const palletsTableHeadRowCell3 = document.createElement('th');
+
+    const palletsTableHeadRowCell5 = document.createElement('th');
+    
+    palletsTableHeadRowCell1.innerHTML = 'Rivi';
+    palletsTableHeadRowCell2.innerHTML = 'Väli';
+    palletsTableHeadRowCell3.innerHTML = 'Paikka';
+
+    palletsTableHeadRowCell5.innerHTML = 'Tulopvm';
+ 
+
+
+    palletsTableHeadRow.appendChild(palletsTableHeadRowCell1);
+    palletsTableHeadRow.appendChild(palletsTableHeadRowCell2);
+    palletsTableHeadRow.appendChild(palletsTableHeadRowCell3);
+    palletsTableHeadRow.appendChild(palletsTableHeadRowCell5);
+    palletsTableBody.appendChild(palletsTableHeadRow);
+
+    palletsTable.appendChild(palletsTableBody);
+    palletsTable.classList.add('pallets-table');
+    resultModalContent.appendChild(palletsTable);
+
+    const productId = await productByCode(query);
+    const pallets = await palletsByProduct(productId.id);
+    for (let i=0; i < pallets.length; i++) {
+
+      const palletSpot = await palletSpotsByPallet(pallets[i].id);
+
+
+      // populate pallets table, rowNumber under row, gapNumber under gap, spotNumber under spot
+      
+      const palletsTableBodyRow = document.createElement('tr');
+      const palletsTableBodyRowCell1 = document.createElement('td');
+      const palletsTableBodyRowCell2 = document.createElement('td');
+      const palletsTableBodyRowCell3 = document.createElement('td');
+      const palletsTableBodyRowCell5 = document.createElement('td');
+
+      palletsTableBodyRowCell1.innerHTML = `${palletSpot[0].spot.gap.row.rowNumber}`;
+      palletsTableBodyRowCell2.innerHTML = `${palletSpot[0].spot.gap.gapNumber}`;
+      palletsTableBodyRowCell3.innerHTML = `${palletSpot[0].spot.spotNumber}`;
+      palletsTableBodyRowCell5.innerHTML = `${palletSpot[0].pallet.arrival.split('T')[0]}`;
+
+      palletsTableBodyRow.appendChild(palletsTableBodyRowCell1);
+      palletsTableBodyRow.appendChild(palletsTableBodyRowCell2);
+      palletsTableBodyRow.appendChild(palletsTableBodyRowCell3);
+      palletsTableBodyRow.appendChild(palletsTableBodyRowCell5);
+      palletsTableBody.appendChild(palletsTableBodyRow);
+
+
+    }
+
+
+  } catch (error) {
+    console.log(error);
   }
-  return array;
 }
-//after submit go to search.html and display the results
+
 try {
   searchForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const searchInput = document.querySelector('#search-input') as HTMLInputElement;
+    
     const query = searchInput.value;
     await search(query);
 
