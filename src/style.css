@@ -132,7 +132,7 @@ h1 {
   flex-direction: row;
 
 }
-.result-modal, .pallet-modal{
+.modal{
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -150,7 +150,7 @@ h1 {
   z-index: 100;
   overflow: auto;
 }
-.result-modal-close-button, .pallet-modal-close-button{
+.close-button{
   position: absolute;
   top: 0;
   right: 0;
@@ -158,10 +158,16 @@ h1 {
   margin-right: 0.2rem;
   padding: 0.2rem 0.5rem;
 }
-.result-modal-h3, .pallet-modal h3{
-  color: #000000;
+.add-products-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
-.result-modal p, .pallet-modal p{
+.modal h3{
+  color: #000000;
+  text-align: center;
+}
+.modal p, .modal label{
   color: #000000;
 }
 .pallets-table {
@@ -176,7 +182,17 @@ h1 {
   color:#000000;
   
 }
-
+.input-div input {
+  float: right;
+  transform: translate(0, 2px);
+}
+.input-div label {
+  float: left;
+  margin-right: 5px;
+}
+.input-div {
+  margin: 0.1rem 0;
+}
 .pallet-modal-content {
   width: 100%;
   min-height: 50%;
@@ -185,6 +201,7 @@ h1 {
   align-items: center;
   flex-direction: column;
 }
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;

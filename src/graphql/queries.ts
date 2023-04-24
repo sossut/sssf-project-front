@@ -257,6 +257,13 @@ const productByCodeQuery = `query ProductByCode($code: String!) {
     code
   }
 }`
+const createProduct = `mutation CreateProduct($name: String!, $weight: Float!, $code: String!) {
+  createProduct(name: $name, weight: $weight, code: $code) {
+    code
+    name
+    weight
+  }
+}`
 export {
   addRow, 
   getAllRows, 
@@ -279,5 +286,6 @@ export {
   palletsByProductQuery,
   palletSpotsByPalletQuery,
   productByCodeQuery,
-  updateToPalletSpotShelf
+  updateToPalletSpotShelf,
+  createProduct
 };
