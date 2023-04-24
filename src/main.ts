@@ -1,7 +1,7 @@
 import './style.css'
 
 import { doGraphQLFetch } from './graphql/fetch';
-import { addGap, addRow, addSpot, getAllRows, getAllSpots, getGaps, updateRow, getAllPalletSpots, getOnePalletSpot, getAllProducts, getOnePallet, getOneProduct, updateToPallet, deletePalletQuery, createNewPalletSpot, createNewPallet, updateToPalletSpot, palletsByProductQuery, palletSpotsByPalletQuery, productByCodeQuery } from './graphql/queries';
+import { addGap, addRow, addSpot, getAllRows, getAllSpots, getGaps, updateRow, getAllPalletSpots, getOnePalletSpot, getAllProducts, getOnePallet, getOneProduct, updateToPallet, deletePalletQuery, createNewPalletSpot, createNewPallet, updateToPalletSpot, palletsByProductQuery, palletSpotsByPalletQuery, productByCodeQuery, updateToPalletSpotShelf, getOneSpot } from './graphql/queries';
 
 
 const apiUrl = 'http://localhost:3000/graphql';
@@ -32,6 +32,17 @@ const getSpots = async () => {
     console.log(error);
   }
 }
+const getSpotById = async (id: string) => {
+  try {
+
+    const spot = await doGraphQLFetch(apiUrl, getOneSpot, {spotByIdId: id});
+
+    if (spot) return spot.spotById;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 const getPalletSpots = async () => {
   try {
 
@@ -62,12 +73,23 @@ const updatePalletSpot = async (psId: string, palletId: string) => {
     console.log(error);
   }
 }
+const updatePalletSpotShelf = async (psId: string, shelf: boolean) => {
+  try {
+
+    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpotShelf, {updatePalletSpotId: psId, shelf: shelf});
+
+    if (palletSpot) return palletSpot.updatePalletSpot;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 const getPalletSpotById = async (id: string) => {
   try {
 
-    const palletSpot = await doGraphQLFetch(apiUrl, getOnePalletSpot, {id});
-    console.log(palletSpot);
-    if (palletSpot) return palletSpot.palletSpot;
+    const palletSpot = await doGraphQLFetch(apiUrl, getOnePalletSpot, {palletSpotByIdId: id});
+
+    if (palletSpot) return palletSpot.palletSpotById;
   } catch (error) {
     console.log(error);
   }
@@ -170,6 +192,7 @@ await getSpots();
 const warehouse = document.querySelector<HTMLDivElement>('#warehouse') as HTMLDivElement;
 const createTable = async () => {
   try {
+    warehouse.innerHTML = '';
     const table = document.createElement('table');
     table.classList.add('warehouse-table');
     const tbody = document.createElement('tbody');
@@ -220,15 +243,10 @@ const createTable = async () => {
               spotContentButton.classList.add('spot-content-button');
               spotContentButton.addEventListener('click', () => {});
               try {
-
-                if (palletSpots[0].spot.id === spots[k].id) {
-
-                  td3.setAttribute('data-pallet-spot-id', `${palletSpots[0].id}`);
-                }
-
                 
                 for (let l = 0; l < palletSpots.length; l++) {
                   if (palletSpots[l].spot.id === spots[k].id) {
+                    td3.setAttribute('data-pallet-spot-id', `${palletSpots[l].id}`);
                     spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
                     for (let m = 0; m < palletSpots[l].pallet.products.length; m++) {
                       if (m === palletSpots[l].pallet.products.length - 1) {
@@ -271,19 +289,395 @@ const createTable = async () => {
 }
 await createTable();
 
+// const palletForm = document.querySelector<HTMLFormElement>('#form-pallet') as HTMLFormElement;
+// const productsSelect = document.querySelector<HTMLSelectElement>('#products') as HTMLSelectElement;
+
+// const addProductButton = document.querySelector<HTMLButtonElement>('#add-product') as HTMLButtonElement;
+// const productsList = document.querySelector<HTMLUListElement>('#products-on-pallet') as HTMLUListElement;
 
 // when clicking on the spot-content-button, open pallet.html and pass the spot id to the url
 const spotContentButtons = document.querySelectorAll<HTMLButtonElement>('.spot-content-button');
+const modal = document.createElement('div');
 spotContentButtons.forEach(button => {
-  button.addEventListener('click', () => {
+  button.addEventListener('click', async () => {
+    console.log('click');
     
     const palletDiv= button.parentElement;
     const spotId = button.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
     const palletSpotId = button.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
     const palletId = palletDiv?.getAttribute('data-pallet-id') as string;
-    window.location.href = `pallet.html?palletId=${palletId}&palletSpotId=${palletSpotId}&spotId=${spotId}`;
+    // window.location.href = `pallet.html?palletId=${palletId}&palletSpotId=${palletSpotId}&spotId=${spotId}`;
+    //create a new modal with the pallet information
+    modal.innerHTML = '';
+    const modalCloseButton = document.createElement('button');
+    
+    const editPalletDiv = document.createElement('div');
+    modal.classList.add('pallet-modal');
+    const h3 = document.createElement('h3');
+    h3.innerHTML = 'Lavan Tuotteet';
+    
+    const palletForm = document.createElement('form');
+    const productsSelect = document.createElement('select');
+    const addProductButton = document.createElement('button');
+    const productsList = document.createElement('ul');
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.setAttribute('type', 'submit');
+    input.setAttribute('value', 'Tallenna');
+    input.setAttribute('id', 'save-pallet');
+
+    label.innerHTML = 'Tuotteet';
+    palletForm.classList.add('pallet-form');
+    productsSelect.setAttribute('id', 'products-select');
+    productsSelect.name = 'products-select';
+    
+    addProductButton.classList.add('add-product-button');
+    addProductButton.innerHTML = 'Lisää tuote';
+    label.setAttribute('for', 'products-select');
+    productsList.classList.add('products-list');
+    
+    editPalletDiv.appendChild(h3);
+    modal.appendChild(editPalletDiv);
+    palletForm.appendChild(label);
+    palletForm.appendChild(productsSelect);
+    palletForm.appendChild(addProductButton);
+    palletForm.appendChild(input);
+    palletForm.appendChild(productsList);
+    editPalletDiv.appendChild(palletForm);
+
+    modal.classList.add('pallet-modal');
+    editPalletDiv.classList.add('pallet-modal-content');
+    
+    modalCloseButton.classList.add('pallet-modal-close-button');
+    modalCloseButton.innerHTML = 'Sulje';
+    modalCloseButton.addEventListener('click', () => {
+
+      document.body.removeChild(modal);
+    }
+    );
+    displayProducts(productsList, palletId);
+    createPalletSelect(productsSelect);
+    modal.appendChild(modalCloseButton);
+    document.body.appendChild(modal);
+
+    addProductButton.addEventListener('click', async (event) => {
+      event.preventDefault();
+      try {
+    
+        const productId = productsSelect.value;
+        const product = await getProductById(productId);
+        for (let i = 0; i < productsList.children.length; i++) {
+          if (productsList.children[i].getAttribute('data-id') === productId) {
+            console.log('product already on the list');
+            return;
+          }
+        }
+        const li = document.createElement('li');
+        const div = document.createElement('div');
+        const productCode = document.createElement('p');
+        const deleteButton = document.createElement('button');
+        div.classList.add('pallet-product-div');
+        productCode.innerHTML = `${product.code}`;
+        deleteButton.innerHTML = 'Poista';
+        deleteButton.classList.add('pallet-product-delete-button');
+        div.appendChild(productCode);
+        div.appendChild(deleteButton);
+        li.setAttribute('data-id', product.id);
+        li.appendChild(div);
+        productsList.appendChild(li);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    palletForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+
+        const array = [];
+        for (let i = 0; i < productsList.children.length; i++) {
+          array.push(productsList.children[i].getAttribute('data-id'));
+          
+        }
+        if (!palletId  && palletSpotId) {
+
+          const pallet = await addPallet(array as string[]);
+
+          const palletSpot = await updatePalletSpot(palletSpotId, pallet.id);
+          updateTableCell(button);
+          return;
+        }
+        
+        if (!palletSpotId && !palletId) {
+
+          const pallet = await addPallet(array as string[]);
+          // const palletSpot = await addPalletSpot(spotId, pallet.id);
+          updateTableCell(button, array as string[]);
+          return;
+        }
+        if (array.length !== 0) {
+          await updatePallet(palletId, array as string[]);
+        } else {
+          await deletePallet(palletId);
+        }
+        updateTableCell(button);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    document.addEventListener('click', async (event) => {
+      if (event.target instanceof HTMLElement) {
+      const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
+        if (deletePalletProductButton) {
+          const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
+          productsList.removeChild(li);
+        }
+      }
+    });
+
+    //create a form for editing the palletSpot
+
+    const editPalletSpotDiv = document.createElement('div');
+    const h31 = document.createElement('h3');
+    const editPalletSpotForm = document.createElement('form');
+    const editPalletSpotLabelTrue = document.createElement('label');
+    const editPalletSpotInputTrue = document.createElement('input');
+    const editPalletSpotLabelFalse = document.createElement('label');
+    const editPalletSpotInputFalse = document.createElement('input');
+    const editPalletSpotSubmit = document.createElement('input');
+    editPalletSpotForm.classList.add('edit-pallet-spot-form');
+    editPalletSpotLabelTrue.innerHTML = 'Taso';
+    editPalletSpotLabelFalse.innerHTML = 'Tavallinen';
+    editPalletSpotInputTrue.setAttribute('type', 'radio');
+    editPalletSpotInputTrue.setAttribute('name', 'pallet-spot');
+    editPalletSpotInputTrue.setAttribute('value', 'true');
+    editPalletSpotInputFalse.setAttribute('type', 'radio');
+    editPalletSpotInputFalse.setAttribute('name', 'pallet-spot');
+    editPalletSpotInputFalse.setAttribute('value', 'false');
+
+    
+    editPalletSpotSubmit.setAttribute('type', 'submit');
+    editPalletSpotSubmit.setAttribute('value', 'Tallenna');
+    editPalletSpotSubmit.setAttribute('id', 'save-pallet-spot');
+    h31.innerHTML = 'Muokkaa paikkaa';
+    editPalletSpotDiv.classList.add('edit-pallet-spot-modal-content');
+    editPalletSpotDiv.appendChild(h31);
+    editPalletSpotForm.appendChild(editPalletSpotLabelTrue);
+    editPalletSpotForm.appendChild(editPalletSpotInputTrue);
+    editPalletSpotForm.appendChild(editPalletSpotLabelFalse);
+    editPalletSpotForm.appendChild(editPalletSpotInputFalse);
+    editPalletSpotForm.appendChild(editPalletSpotSubmit);
+    editPalletSpotDiv.appendChild(editPalletSpotForm);
+    try {
+      
+      const spot = await getSpotById(spotId);
+
+      if (spot.spotNumber === 3) {
+        
+        modal.appendChild(editPalletSpotDiv);
+      }
+      const palletSpot = await getPalletSpotById(palletSpotId);
+      
+      if (!palletSpot.shelf) {
+        editPalletSpotInputFalse.checked = true;
+      } else {
+        editPalletSpotInputTrue.checked = true;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+
+    editPalletSpotForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        const palletSpotForm = event.target as HTMLFormElement;
+        const formData = new FormData(palletSpotForm);
+        const shelf = formData.get('pallet-spot') === 'true' ? true : false;
+        await updatePalletSpotShelf(palletSpotId, shelf);
+        updateTableCell(button);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
   });
 });
+
+const updateTableCell = async (elem: HTMLButtonElement, array?: Array<String>) => {
+  try {
+    const spotId = elem.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
+
+     const palletId = elem.parentElement?.getAttribute('data-pallet-id') as string;
+     const palletSpotId = elem.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
+
+    const palletSpot = await getPalletSpotById(palletSpotId);
+    if (!palletSpotId) {
+      const newPallet = await addPallet(array as string[]);
+      const newPalletSpot = await addPalletSpot(spotId, newPallet?.id);
+      const cell = document.querySelector(`[data-spot-id="${spotId}"]`) as HTMLTableElement;
+      cell.children[1].children[0].children[0].innerHTML = '';
+      cell.children[1].setAttribute('data-pallet-spot-id', `${newPalletSpot.id}`);
+      for (let i = 0; i < newPalletSpot.pallet.products.length; i++) {
+        if (i === newPalletSpot.pallet.products.length - 1) {
+          cell.children[1].children[0].children[0].innerHTML += `${newPalletSpot.pallet.products[i].code}`;
+        } else {
+          
+          cell.children[1].children[0].children[0].innerHTML += `${newPalletSpot.pallet.products[i].code}, `;
+        }
+        cell.children[1].children[0].setAttribute('data-pallet-id', `${newPalletSpot.pallet.id}`);
+      }
+      return;
+    }
+
+    const cell = document.querySelector(`[data-spot-id="${spotId}"]`) as HTMLTableElement;
+    cell.children[1].setAttribute('data-pallet-spot-id', `${palletSpot.id}`);
+    cell.children[1].children[0].children[0].innerHTML = '';
+    for (let i = 0; i < palletSpot.pallet.products.length; i++) {
+      
+      if (i === palletSpot.pallet.products.length - 1) {
+        cell.children[1].children[0].children[0].innerHTML += `${palletSpot.pallet.products[i].code}`;
+      } else {
+        
+        cell.children[1].children[0].children[0].innerHTML += `${palletSpot.pallet.products[i].code}, `;
+      }
+      cell.children[1].children[0].setAttribute('data-pallet-id', `${palletSpot.pallet.id}`);
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
+const createPalletSelect = async (select: HTMLSelectElement) => {
+  try {
+    const products = await getProducts();
+
+    for (let i = 0; i < products.length; i++) {
+      const option = document.createElement('option');
+      option.value = products[i].id;
+      option.text = products[i].code;
+      select.appendChild(option);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+//get the pallet id from the url
+// const queryString = document.location.search;
+// const urlParams = new URLSearchParams(queryString);
+// const palletId = urlParams.get('palletId') as string;
+// const spotId = urlParams.get('spotId') as string;
+// const palletSpotId = urlParams.get('palletSpotId') as string;
+
+const displayProducts = async (list: HTMLUListElement, palletId: string) => {
+  try {
+
+    const pallet = await getPalletById(palletId);
+
+    list.innerHTML = '';
+    for (let i = 0; i < pallet.products.length; i++) {
+      const div = document.createElement('div');
+      const li = document.createElement('li');
+      const productCode = document.createElement('p');
+      const deleteButton = document.createElement('button');
+      li.setAttribute('data-id', pallet.products[i].id);
+      div.classList.add('pallet-product-div');
+      productCode.innerHTML = `${pallet.products[i].code}`;
+      deleteButton.innerHTML = 'Poista';
+      deleteButton.classList.add('pallet-product-delete-button');
+      div.appendChild(productCode);
+      div.appendChild(deleteButton);
+      li.appendChild(div);
+      list.appendChild(li);
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+// try {
+//   addProductButton.addEventListener('click', async (event) => {
+//     event.preventDefault();
+//     try {
+  
+//       const productId = productsSelect.value;
+//       const product = await getProductById(productId);
+//       for (let i = 0; i < productsList.children.length; i++) {
+//         if (productsList.children[i].getAttribute('data-id') === productId) {
+//           console.log('product already on the list');
+//           return;
+//         }
+//       }
+//       const li = document.createElement('li');
+//       const div = document.createElement('div');
+//       const productCode = document.createElement('p');
+//       const deleteButton = document.createElement('button');
+//       div.classList.add('pallet-product-div');
+//       productCode.innerHTML = `${product.code}`;
+//       deleteButton.innerHTML = 'Poista';
+//       deleteButton.classList.add('pallet-product-delete-button');
+//       div.appendChild(productCode);
+//       div.appendChild(deleteButton);
+//       li.setAttribute('data-id', product.id);
+//       li.appendChild(div);
+//       productsList.appendChild(li);
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
+  
+// } catch (error) {
+//   console.log(error);
+// }
+// try {
+//   palletForm.addEventListener('submit', async (event) => {
+//     event.preventDefault();
+//     try {
+
+//       const array = [];
+//       for (let i = 0; i < productsList.children.length; i++) {
+//         array.push(productsList.children[i].getAttribute('data-id'));
+        
+//       }
+//       if (palletId === 'null' && palletSpotId !== 'null') {
+
+//         const pallet = await addPallet(array as string[]);
+
+//         const palletSpot = await updatePalletSpot(palletSpotId, pallet.id);
+//         return;
+//       }
+      
+//       if (palletSpotId === 'null' && palletId === 'null') {
+
+//         const pallet = await addPallet(array as string[]);
+//         const palletSpot = await addPalletSpot(spotId, pallet.id);
+//         return;
+//       }
+//       if (array.length !== 0) {
+//         await updatePallet(palletId, array as string[]);
+//       } else {
+//         await deletePallet(palletId);
+//       }
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
+// } catch (error) {
+//   console.log(error);
+// }  
+
+// document.addEventListener('click', async (event) => {
+//   if (event.target instanceof HTMLElement) {
+//   const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
+//     if (deletePalletProductButton) {
+//       const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
+//       productsList.removeChild(li);
+//     }
+//   }
+// });
 
 
 
@@ -406,138 +800,8 @@ settings();
 
 //pallet
 //populate the pallet form with the data from the database
-const palletForm = document.querySelector<HTMLFormElement>('#form-pallet') as HTMLFormElement;
-const productsSelect = document.querySelector<HTMLSelectElement>('#products') as HTMLSelectElement;
 
-const addProductButton = document.querySelector<HTMLButtonElement>('#add-product') as HTMLButtonElement;
-const productsList = document.querySelector<HTMLUListElement>('#products-on-pallet') as HTMLUListElement;
-const createPalletSelect = async () => {
-  try {
-    const products = await getProducts();
-    for (let i = 0; i < products.length; i++) {
-      const option = document.createElement('option');
-      option.value = products[i].id;
-      option.text = products[i].code;
-      productsSelect.appendChild(option);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
-//get the pallet id from the url
-const queryString = document.location.search;
-const urlParams = new URLSearchParams(queryString);
-const palletId = urlParams.get('palletId') as string;
-const spotId = urlParams.get('spotId') as string;
-const palletSpotId = urlParams.get('palletSpotId') as string;
 
-const displayProducts = async () => {
-  try {
-
-    const pallet = await getPalletById(palletId);
-
-    productsList.innerHTML = '';
-    for (let i = 0; i < pallet.products.length; i++) {
-      const div = document.createElement('div');
-      const li = document.createElement('li');
-      const productCode = document.createElement('p');
-      const deleteButton = document.createElement('button');
-      li.setAttribute('data-id', pallet.products[i].id);
-      div.classList.add('pallet-product-div');
-      productCode.innerHTML = `${pallet.products[i].code}`;
-      deleteButton.innerHTML = 'Poista';
-      deleteButton.classList.add('pallet-product-delete-button');
-      div.appendChild(productCode);
-      div.appendChild(deleteButton);
-      li.appendChild(div);
-      productsList.appendChild(li);
-    }
-
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-try {
-  addProductButton.addEventListener('click', async (event) => {
-    event.preventDefault();
-    try {
-  
-      const productId = productsSelect.value;
-      const product = await getProductById(productId);
-      for (let i = 0; i < productsList.children.length; i++) {
-        if (productsList.children[i].getAttribute('data-id') === productId) {
-          console.log('product already on the list');
-          return;
-        }
-      }
-      const li = document.createElement('li');
-      const div = document.createElement('div');
-      const productCode = document.createElement('p');
-      const deleteButton = document.createElement('button');
-      div.classList.add('pallet-product-div');
-      productCode.innerHTML = `${product.code}`;
-      deleteButton.innerHTML = 'Poista';
-      deleteButton.classList.add('pallet-product-delete-button');
-      div.appendChild(productCode);
-      div.appendChild(deleteButton);
-      li.setAttribute('data-id', product.id);
-      li.appendChild(div);
-      productsList.appendChild(li);
-    } catch (error) {
-      console.log(error);
-    }
-  });
-  
-} catch (error) {
-  console.log(error);
-}
-try {
-  palletForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  try {
-
-    const array = [];
-    for (let i = 0; i < productsList.children.length; i++) {
-      array.push(productsList.children[i].getAttribute('data-id'));
-      
-    }
-    if (palletId === 'null' && palletSpotId !== 'null') {
-
-      const pallet = await addPallet(array as string[]);
-
-      const palletSpot = await updatePalletSpot(palletSpotId, pallet.id);
-      return;
-    }
-    
-    if (palletSpotId === 'null' && palletId === 'null') {
-
-      const pallet = await addPallet(array as string[]);
-      const palletSpot = await addPalletSpot(spotId, pallet.id);
-      return;
-    }
-    if (array.length !== 0) {
-      await updatePallet(palletId, array as string[]);
-    } else {
-      await deletePallet(palletId);
-    }
-  } catch (error) {
-    console.log(error);
-  }
-});
-} catch (error) {
-  console.log(error);
-}  
-
-document.addEventListener('click', async (event) => {
-  if (event.target instanceof HTMLElement) {
-  const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
-    if (deletePalletProductButton) {
-      const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
-      productsList.removeChild(li);
-    }
-  }
-});
 
 // create search function for search form
 const searchForm = document.querySelector('#search-form');
@@ -545,6 +809,7 @@ const searchInput = document.querySelector('#search-input') as HTMLInputElement;
 const resultModal = document.createElement('div');
 const search = async (query: string) => {
   try {
+    resultModal.innerHTML = '';
     const h3 = document.createElement('h3');
     resultModal.appendChild(h3);
     h3.classList.add('result-modal-h3');
@@ -643,5 +908,5 @@ try {
 }
 
 
-await displayProducts();
-await createPalletSelect();
+// await displayProducts();
+// await createPalletSelect();

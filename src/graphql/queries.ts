@@ -73,9 +73,15 @@ const getAllSpots = `query Spots {
     }
   }
 }`
+const getOneSpot = `query SpotById($spotByIdId: ID!) {
+  spotById(id: $spotByIdId) {
+    spotNumber
+  }
+}`
 const getAllPalletSpots = `query PalletSpots {
   palletSpots {
     id
+    shelf
     pallet {
       id
       products {
@@ -96,6 +102,7 @@ const getAllPalletSpots = `query PalletSpots {
 const getOnePalletSpot = `query PalletSpotById($palletSpotByIdId: ID!) {
   palletSpotById(id: $palletSpotByIdId) {
     id
+    shelf
     pallet {
       products {
         code
@@ -144,6 +151,23 @@ const updateToPalletSpot = `mutation UpdatePalletSpot($updatePalletSpotId: ID!, 
     }
   }
 }`
+const updateToPalletSpotShelf = `mutation UpdatePalletSpot($updatePalletSpotId: ID!, $shelf: Boolean) {
+  updatePalletSpot(id: $updatePalletSpotId, shelf: $shelf) {
+    id
+    shelf
+    pallet {
+      id
+      products {
+        id
+        code
+      }
+    }
+    spot {
+      id
+    }
+  }
+}
+`
 const updateToPallet = `mutation UpdatePallet($updatePalletId: ID!, $products: [ID]) {
   updatePallet(id: $updatePalletId, products: $products) {
     id
@@ -240,7 +264,8 @@ export {
   addGap, 
   getGaps, 
   addSpot, 
-  getAllSpots, 
+  getAllSpots,
+  getOneSpot,
   getAllPalletSpots, 
   createNewPalletSpot,
   updateToPalletSpot,
@@ -253,5 +278,6 @@ export {
   getOneProduct,
   palletsByProductQuery,
   palletSpotsByPalletQuery,
-  productByCodeQuery
+  productByCodeQuery,
+  updateToPalletSpotShelf
 };
