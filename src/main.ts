@@ -1,202 +1,29 @@
 import './style.css'
 
 import { doGraphQLFetch } from './graphql/fetch';
-import { addGap, addRow, addSpot, getAllRows, getAllSpots, getGaps, updateRow, getAllPalletSpots, getOnePalletSpot, getAllProducts, getOnePallet, getOneProduct, updateToPallet, deletePalletQuery, createNewPalletSpot, createNewPallet, updateToPalletSpot, palletsByProductQuery, palletSpotsByPalletQuery, productByCodeQuery, updateToPalletSpotShelf, getOneSpot, createProduct } from './graphql/queries';
-
+import { addGap, addRow, addSpot, getGaps, updateRow } from './graphql/queries';
+import { getRows,
+  getSpots,
+  getSpotById,
+  getPalletSpots,
+  addPalletSpot,
+  updatePalletSpot,
+  updatePalletSpotShelf,
+  getPalletSpotById,
+  getPalletById,
+  addPallet,
+  updatePallet,
+  deletePallet,
+  getProducts,
+  getProductById,
+  addProduct,
+  palletsByProduct,
+  palletSpotsByPallet,
+  productByCode
+} from './graphql/fetches';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const getRows = async () => {
-  try {
-    const rows = await doGraphQLFetch(apiUrl, getAllRows, {});
-
-    if (rows) return rows.rows;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const getSpots = async () => {
-  try {
-
-    let spots;
-    if (!localStorage.getItem('spots')) {
-      spots = await doGraphQLFetch(apiUrl, getAllSpots, {});
-
-      localStorage.setItem('spots', JSON.stringify(spots));
-      
-    }
-    let spotsString = localStorage.getItem('spots') as string;
-    spots = JSON.parse(spotsString) || '';
-    if (spots) return spots.spots;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const getSpotById = async (id: string) => {
-  try {
-
-    const spot = await doGraphQLFetch(apiUrl, getOneSpot, {spotByIdId: id});
-
-    if (spot) return spot.spotById;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const getPalletSpots = async () => {
-  try {
-
-    const palletSpots = await doGraphQLFetch(apiUrl, getAllPalletSpots, {});
-
-    if (palletSpots) return palletSpots.palletSpots;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const addPalletSpot = async (spotId: string, palletId: string) => {
-  try {
-
-    const palletSpot = await doGraphQLFetch(apiUrl, createNewPalletSpot, {spot: spotId, pallet: palletId});
-    console.log(palletSpot);
-    if (palletSpot) return palletSpot.createPalletSpot;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const updatePalletSpot = async (psId: string, palletId: string) => {
-  try {
-
-    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpot, {updatePalletSpotId: psId, pallet: palletId});
-    console.log(palletSpot);
-    if (palletSpot) return palletSpot.updatePalletSpot;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const updatePalletSpotShelf = async (psId: string, shelf: boolean) => {
-  try {
-
-    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpotShelf, {updatePalletSpotId: psId, shelf: shelf});
-
-    if (palletSpot) return palletSpot.updatePalletSpot;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const getPalletSpotById = async (id: string) => {
-  try {
-
-    const palletSpot = await doGraphQLFetch(apiUrl, getOnePalletSpot, {palletSpotByIdId: id});
-
-    if (palletSpot) return palletSpot.palletSpotById;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const getPalletById = async (id: string) => {
-  try {
-
-    const pallet = await doGraphQLFetch(apiUrl, getOnePallet, {palletByIdId: id});
-
-    if (pallet) return pallet.palletById;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const addPallet = async (products: Array<string>) => {
-  try {
-    const pallet = await doGraphQLFetch(apiUrl, createNewPallet, {products: products });
-    if (pallet) return pallet.createPallet;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const updatePallet = async (id: string, products: string[]) => {
-  try {
-
-    const pallet = await doGraphQLFetch(apiUrl, updateToPallet, {updatePalletId: id, products: products});
-
-    if (pallet) return pallet.updatePallet;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const deletePallet = async (id: string) => {
-  try {
-
-    const pallet = await doGraphQLFetch(apiUrl, deletePalletQuery, {deletePalletId: id});
-
-    if (pallet) return pallet.deletePallet;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const getProducts = async () => {
-  try {
-
-    const products = await doGraphQLFetch(apiUrl, getAllProducts, {});
-
-    if (products) return products.products;
-  } catch (error) {
-    console.log(error);
-  }
-}
-const getProductById = async (id: string) => {
-  try {
-
-    const product = await doGraphQLFetch(apiUrl, getOneProduct, {productByIdId: id});
-
-    if (product) return product.productById;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const addProduct = async (code: string, name: string, weight: number) => {
-  try {
-
-    const product = await doGraphQLFetch(apiUrl, createProduct, {name: name, weight: weight, code: code});
-
-    if (product) return product.createProduct;
-  }
-  catch (error) {
-    console.log(error);
-  }
-}
-
-const palletsByProduct = async (productId: string) => {
-  try {
-
-    const pallets = await doGraphQLFetch(apiUrl, palletsByProductQuery, {product: productId});
-
-    if (pallets) return pallets.palletsByProduct;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const palletSpotsByPallet = async (palletId: string) => {
-  try {
-
-    const palletSpots = await doGraphQLFetch(apiUrl, palletSpotsByPalletQuery, {pallet: palletId});
-
-    if (palletSpots) return palletSpots.palletSpotsByPallet;
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const productByCode = async (code: string) => {
-  try {
-
-    const product = await doGraphQLFetch(apiUrl, productByCodeQuery, {code: code});
-
-    if (product) return product.productByCode;
-  } catch (error) {
-    console.log(error);
-  }
-}
 
 // in div warehouse create a table with the number of rows and gaps and spots
 await getSpots();
@@ -258,6 +85,8 @@ const createTable = async () => {
                 for (let l = 0; l < palletSpots.length; l++) {
                   if (palletSpots[l].spot.id === spots[k].id) {
                     td3.setAttribute('data-pallet-spot-id', `${palletSpots[l].id}`);
+                    spotContent.classList.add('draggable');
+                    spotContent.setAttribute('draggable', 'true');
                     spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
                     for (let m = 0; m < palletSpots[l].pallet.products.length; m++) {
                       if (m === palletSpots[l].pallet.products.length - 1) {
@@ -289,6 +118,7 @@ const createTable = async () => {
               td2.classList.add('spot-number');
               td3.classList.add('spot-content');
               tr2.setAttribute('data-spot-id', `${spots[k].id}`);
+              td3.classList.add('droppable');
             }
           }
         }
@@ -299,12 +129,6 @@ const createTable = async () => {
   }
 }
 await createTable();
-
-// const palletForm = document.querySelector<HTMLFormElement>('#form-pallet') as HTMLFormElement;
-// const productsSelect = document.querySelector<HTMLSelectElement>('#products') as HTMLSelectElement;
-
-// const addProductButton = document.querySelector<HTMLButtonElement>('#add-product') as HTMLButtonElement;
-// const productsList = document.querySelector<HTMLUListElement>('#products-on-pallet') as HTMLUListElement;
 
 // when clicking on the spot-content-button, open pallet.html and pass the spot id to the url
 const spotContentButtons = document.querySelectorAll<HTMLButtonElement>('.spot-content-button');
@@ -420,7 +244,7 @@ spotContentButtons.forEach(button => {
         
         if (!palletSpotId && !palletId) {
 
-          const pallet = await addPallet(array as string[]);
+          // const pallet = await addPallet(array as string[]);
           // const palletSpot = await addPalletSpot(spotId, pallet.id);
           updateTableCell(button, array as string[]);
           return;
@@ -519,17 +343,23 @@ const updateTableCell = async (elem: HTMLButtonElement, array?: Array<String>) =
   try {
     const spotId = elem.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
 
-     const palletId = elem.parentElement?.getAttribute('data-pallet-id') as string;
+     let palletId = elem.parentElement?.getAttribute('data-pallet-id') as string;
      const palletSpotId = elem.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
 
     const palletSpot = await getPalletSpotById(palletSpotId);
     const cell = document.querySelector(`[data-spot-id="${spotId}"]`) as HTMLTableElement;
     if (!palletSpotId) {
-      const newPallet = await addPallet(array as string[]);
-      const newPalletSpot = await addPalletSpot(spotId, newPallet?.id);
+      if (!palletId) {
+        const newPallet = await addPallet(array as string[]);
+        palletId = newPallet.id;
+      }  
+      const newPalletSpot = await addPalletSpot(spotId, palletId);
       
       cell.children[1].children[0].children[0].innerHTML = '';
       cell.children[1].setAttribute('data-pallet-spot-id', `${newPalletSpot.id}`);
+      cell.children[1].children[0].classList.add('draggable');
+      cell.children[1].children[0].setAttribute('draggable', 'true');
+      cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
       for (let i = 0; i < newPalletSpot.pallet.products.length; i++) {
         if (i === newPalletSpot.pallet.products.length - 1) {
           cell.children[1].children[0].children[0].innerHTML += `${newPalletSpot.pallet.products[i].code}`;
@@ -537,13 +367,13 @@ const updateTableCell = async (elem: HTMLButtonElement, array?: Array<String>) =
           
           cell.children[1].children[0].children[0].innerHTML += `${newPalletSpot.pallet.products[i].code}, `;
         }
-        cell.children[1].children[0].setAttribute('data-pallet-id', `${newPalletSpot.pallet.id}`);
       }
       return;
     }
 
     cell.children[1].setAttribute('data-pallet-spot-id', `${palletSpot.id}`);
     cell.children[1].children[0].children[0].innerHTML = '';
+    cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
     for (let i = 0; i < palletSpot.pallet.products.length; i++) {
       
       if (i === palletSpot.pallet.products.length - 1) {
@@ -552,7 +382,6 @@ const updateTableCell = async (elem: HTMLButtonElement, array?: Array<String>) =
         
         cell.children[1].children[0].children[0].innerHTML += `${palletSpot.pallet.products[i].code}, `;
       }
-      cell.children[1].children[0].setAttribute('data-pallet-id', `${palletSpot.pallet.id}`);
     }
 
   } catch (error) {
@@ -575,12 +404,6 @@ const createPalletSelect = async (select: HTMLSelectElement) => {
     console.log(error);
   }
 }
-//get the pallet id from the url
-// const queryString = document.location.search;
-// const urlParams = new URLSearchParams(queryString);
-// const palletId = urlParams.get('palletId') as string;
-// const spotId = urlParams.get('spotId') as string;
-// const palletSpotId = urlParams.get('palletSpotId') as string;
 
 const displayProducts = async (list: HTMLUListElement, palletId: string) => {
   try {
@@ -608,6 +431,67 @@ const displayProducts = async (list: HTMLUListElement, palletId: string) => {
     console.log(error);
   }
 }
+
+//drag and drop
+const draggableElements = document.querySelectorAll('.draggable') as NodeListOf<HTMLDivElement>;
+const droppableElements = document.querySelectorAll('.droppable') as NodeListOf<HTMLDivElement>;
+
+const dragStart = (event: DragEvent) => {
+  event.dataTransfer?.setData('pallet-id', (event.target as HTMLDivElement).getAttribute('data-pallet-id') as string);
+  const draggableElement = event.target as HTMLDivElement;
+  const spotId = draggableElement.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
+  event.dataTransfer?.setData('spot-id', spotId);
+}
+const drop = async (event: DragEvent) => {
+  event.preventDefault();
+  const palletId = event.dataTransfer?.getData('pallet-id') as string;
+  const spotId = event.dataTransfer?.getData('spot-id') as string;
+  const draggableElement = document.querySelector(`[data-pallet-id="${palletId}"]`) as HTMLDivElement;
+  const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotId}"]`)?.children[1] as HTMLTableElement;
+
+  const spotDiv = document.createElement('div');
+  spotDiv.classList.add('spot-content-div');
+  const p = document.createElement('p');
+  p.classList.add('spot-content-text');
+
+  const button = document.createElement('button');
+  button.classList.add('spot-content-button');
+  button.innerHTML = 'Muokkaa';
+  const div = event.target as HTMLTableElement;
+
+  const dropzone = div.parentElement as HTMLDivElement;
+
+  spotDiv.appendChild(p);
+  spotDiv.appendChild(button);
+  draggedFromPalletSpotTd.appendChild(spotDiv);
+
+
+  dropzone.replaceChildren(draggableElement);
+
+ 
+  let palletSpotId = dropzone.parentElement?.getAttribute('data-pallet-spot-id') as string;
+
+  if (!palletSpotId) {
+    const newPS = await addPalletSpot(spotId, palletId);
+    palletSpotId = newPS.id;
+  }
+  updatePalletSpot(palletSpotId, palletId);
+}
+const dragOver = (event: DragEvent) => {
+  event.preventDefault();
+}
+draggableElements.forEach(elem => {
+  elem.addEventListener('dragstart', dragStart);
+  // elem.addEventListener('dragend', dragEnd);
+});
+
+droppableElements.forEach(elem => {
+  elem.addEventListener('dragover', dragOver);
+  // elem.addEventListener('dragenter', dragEnter);
+  // elem.addEventListener('dragleave', dragLeave);
+  elem.addEventListener('drop', drop);
+});
+
 
 //create modal for adding new products to the database, launch from add-products button
 const modal1 = document.createElement('div');
@@ -705,86 +589,6 @@ addProducts.onclick = () => {
     }
   )
 }
-// try {
-//   addProductButton.addEventListener('click', async (event) => {
-//     event.preventDefault();
-//     try {
-  
-//       const productId = productsSelect.value;
-//       const product = await getProductById(productId);
-//       for (let i = 0; i < productsList.children.length; i++) {
-//         if (productsList.children[i].getAttribute('data-id') === productId) {
-//           console.log('product already on the list');
-//           return;
-//         }
-//       }
-//       const li = document.createElement('li');
-//       const div = document.createElement('div');
-//       const productCode = document.createElement('p');
-//       const deleteButton = document.createElement('button');
-//       div.classList.add('pallet-product-div');
-//       productCode.innerHTML = `${product.code}`;
-//       deleteButton.innerHTML = 'Poista';
-//       deleteButton.classList.add('pallet-product-delete-button');
-//       div.appendChild(productCode);
-//       div.appendChild(deleteButton);
-//       li.setAttribute('data-id', product.id);
-//       li.appendChild(div);
-//       productsList.appendChild(li);
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   });
-  
-// } catch (error) {
-//   console.log(error);
-// }
-// try {
-//   palletForm.addEventListener('submit', async (event) => {
-//     event.preventDefault();
-//     try {
-
-//       const array = [];
-//       for (let i = 0; i < productsList.children.length; i++) {
-//         array.push(productsList.children[i].getAttribute('data-id'));
-        
-//       }
-//       if (palletId === 'null' && palletSpotId !== 'null') {
-
-//         const pallet = await addPallet(array as string[]);
-
-//         const palletSpot = await updatePalletSpot(palletSpotId, pallet.id);
-//         return;
-//       }
-      
-//       if (palletSpotId === 'null' && palletId === 'null') {
-
-//         const pallet = await addPallet(array as string[]);
-//         const palletSpot = await addPalletSpot(spotId, pallet.id);
-//         return;
-//       }
-//       if (array.length !== 0) {
-//         await updatePallet(palletId, array as string[]);
-//       } else {
-//         await deletePallet(palletId);
-//       }
-//     } catch (error) {
-//       console.log(error);
-//     }
-//   });
-// } catch (error) {
-//   console.log(error);
-// }  
-
-// document.addEventListener('click', async (event) => {
-//   if (event.target instanceof HTMLElement) {
-//   const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
-//     if (deletePalletProductButton) {
-//       const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
-//       productsList.removeChild(li);
-//     }
-//   }
-// });
 
 
 
@@ -905,10 +709,6 @@ const settings = () => {
 
 settings();
 
-//pallet
-//populate the pallet form with the data from the database
-
-
 
 // create search function for search form
 const searchForm = document.querySelector('#search-form');
@@ -1014,6 +814,3 @@ try {
   console.log(error);
 }
 
-
-// await displayProducts();
-// await createPalletSelect();
