@@ -440,14 +440,17 @@ const dragStart = (event: DragEvent) => {
   event.dataTransfer?.setData('pallet-id', (event.target as HTMLDivElement).getAttribute('data-pallet-id') as string);
   const draggableElement = event.target as HTMLDivElement;
   const spotId = draggableElement.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
+  const psId = draggableElement.parentElement?.getAttribute('data-pallet-spot-id') as string;
+  event.dataTransfer?.setData('ps-id', psId);
   event.dataTransfer?.setData('spot-id', spotId);
 }
 const drop = async (event: DragEvent) => {
   event.preventDefault();
   const palletId = event.dataTransfer?.getData('pallet-id') as string;
-  const spotId = event.dataTransfer?.getData('spot-id') as string;
+  const spotIdFrom = event.dataTransfer?.getData('spot-id') as string;
+  const psId = event.dataTransfer?.getData('ps-id') as string;
   const draggableElement = document.querySelector(`[data-pallet-id="${palletId}"]`) as HTMLDivElement;
-  const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotId}"]`)?.children[1] as HTMLTableElement;
+  const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotIdFrom}"]`)?.children[1] as HTMLTableElement;
 
   const spotDiv = document.createElement('div');
   spotDiv.classList.add('spot-content-div');
@@ -460,22 +463,26 @@ const drop = async (event: DragEvent) => {
   const div = event.target as HTMLTableElement;
 
   const dropzone = div.parentElement as HTMLDivElement;
-
   spotDiv.appendChild(p);
   spotDiv.appendChild(button);
   draggedFromPalletSpotTd.appendChild(spotDiv);
-
-
+  
+  
   dropzone.replaceChildren(draggableElement);
+  
+  const spotIdTo = dropzone.parentElement?.getAttribute('data-spot-id') as string;
 
- 
-  let palletSpotId = dropzone.parentElement?.getAttribute('data-pallet-spot-id') as string;
-
+  console.log(spotIdTo);
+  let palletSpotId = dropzone.getAttribute('data-pallet-spot-id') as string;
+  console.log(palletSpotId);
   if (!palletSpotId) {
-    const newPS = await addPalletSpot(spotId, palletId);
+    const newPS = await addPalletSpot(spotIdTo, palletId);
     palletSpotId = newPS.id;
   }
+  dropzone.setAttribute('data-pallet-spot-id', palletSpotId);
+  updatePalletSpot(psId, null as unknown as string);
   updatePalletSpot(palletSpotId, palletId);
+
 }
 const dragOver = (event: DragEvent) => {
   event.preventDefault();
