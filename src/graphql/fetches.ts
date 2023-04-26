@@ -19,7 +19,9 @@ import {
   productByCodeQuery, 
   updateToPalletSpotShelf, 
   getOneSpot, 
-  createProduct 
+  createProduct, 
+  spotByRowGapQuery,
+  palletSpotBySpotQuery
 } from './queries';
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -214,6 +216,26 @@ const productByCode = async (code: string) => {
     console.log(error);
   }
 }
+const spotByRowGap = async (spotNumber: number, gapNumber: number, rowNumber: number) => {
+  try {
+
+    const spot = await doGraphQLFetch(apiUrl, spotByRowGapQuery, {spotNumber: spotNumber, gapNumber: gapNumber, rowNumber: rowNumber});
+
+    if (spot) return spot.spotByRowGap;
+  } catch (error) {
+    console.log(error);
+  }
+}
+const palletSpotBySpot = async (spotId: string) => {
+  try {
+
+    const palletSpot = await doGraphQLFetch(apiUrl, palletSpotBySpotQuery, {spot: spotId});
+
+    if (palletSpot) return palletSpot.palletSpotBySpot;
+  } catch (error) {
+    console.log(error);
+  }
+}
 export {
   getRows,
   getSpots,
@@ -232,5 +254,7 @@ export {
   addProduct,
   palletsByProduct,
   palletSpotsByPallet,
-  productByCode
+  productByCode,
+  spotByRowGap,
+  palletSpotBySpot
 }

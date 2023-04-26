@@ -19,7 +19,9 @@ import { getRows,
   addProduct,
   palletsByProduct,
   palletSpotsByPallet,
-  productByCode
+  productByCode,
+  spotByRowGap,
+  palletSpotBySpot
 } from './graphql/fetches';
 
 const apiUrl = import.meta.env.VITE_API_URL;
@@ -224,6 +226,81 @@ spotContentButtons.forEach(button => {
         console.log(error);
       }
     });
+    if (palletId) {
+      //create a form for changing the spot for the pallet, form has 3 inputs: row, gap and spot
+      const changeSpotForm = document.createElement('form');
+      const h3 = document.createElement('h3');
+      const rowInput = document.createElement('input');
+      const gapInput = document.createElement('input');
+      const spotInput = document.createElement('input');
+      const changeSpotButton = document.createElement('input');
+      const rowLabel = document.createElement('label');
+      const gapLabel = document.createElement('label');
+      const spotLabel = document.createElement('label');
+      changeSpotForm.classList.add('change-spot-form');
+      h3.innerHTML = 'Vaihda paikka';
+      rowLabel.innerHTML = 'Rivi';
+      gapLabel.innerHTML = 'Väli';
+      spotLabel.innerHTML = 'Paikka';
+      rowLabel.setAttribute('for', 'row');
+      gapLabel.setAttribute('for', 'gap');
+      spotLabel.setAttribute('for', 'spot');
+      rowInput.setAttribute('type', 'number');
+      gapInput.setAttribute('type', 'number');
+      spotInput.setAttribute('type', 'number');
+      rowInput.setAttribute('id', 'change-row');
+      gapInput.setAttribute('id', 'change-gap');
+      spotInput.setAttribute('id', 'change-spot');
+      changeSpotButton.setAttribute('type', 'submit');
+      changeSpotButton.setAttribute('value', 'Vaihda paikka');
+      editPalletDiv.appendChild(h3);
+      changeSpotForm.appendChild(rowLabel);
+      changeSpotForm.appendChild(rowInput);
+      changeSpotForm.appendChild(gapLabel);
+      changeSpotForm.appendChild(gapInput);
+      changeSpotForm.appendChild(spotLabel);
+      changeSpotForm.appendChild(spotInput);
+      changeSpotForm.appendChild(changeSpotButton);
+      editPalletDiv.appendChild(changeSpotForm);
+      changeSpotForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        try {
+          const row = parseInt(rowInput.value);
+          const gap = parseInt(gapInput.value);
+          const spot = parseInt(spotInput.value);
+
+          const spotResult = await spotByRowGap(spot, gap, row);
+          const palletSpot = await palletSpotBySpot(spotResult.id);
+          const spotDiv = document.querySelector(`[data-spot-id="${spotResult.id}"]`);
+          const btn = spotDiv?.querySelector('button') as HTMLButtonElement;
+          console.log(btn);
+          if (!palletSpot) {
+
+            button.parentElement?.parentElement?.removeAttribute('data-pallet-spot-id');
+            await addPalletSpot(spotResult.id, palletId);
+            await updatePalletSpot(palletSpotId, null as unknown as string);
+            updateTableCell(button);
+            updateTableCell(btn);
+            return;
+          }
+          if (palletSpot.pallet) {
+            alert('Paikka on jo varattu');
+            //TODO confirm if user wants to delete the old pallet from the spot
+            return;
+          }
+          button.parentElement?.parentElement?.removeAttribute('data-pallet-spot-id');
+          await updatePalletSpot(palletSpot.id, palletId);
+          await updatePalletSpot(palletSpotId, null as unknown as string);
+          updateTableCell(button);
+          updateTableCell(btn);
+        } catch (error) {
+          console.log(error);
+        }
+      });
+    }
+
+
+
     palletForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       try {
@@ -445,49 +522,59 @@ const dragStart = (event: DragEvent) => {
   event.dataTransfer?.setData('spot-id', spotId);
 }
 const drop = async (event: DragEvent) => {
-  event.preventDefault();
-  const palletId = event.dataTransfer?.getData('pallet-id') as string;
-  const spotIdFrom = event.dataTransfer?.getData('spot-id') as string;
-  const psId = event.dataTransfer?.getData('ps-id') as string;
-  const draggableElement = document.querySelector(`[data-pallet-id="${palletId}"]`) as HTMLDivElement;
-  const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotIdFrom}"]`)?.children[1] as HTMLTableElement;
-
-  const div = event.target as HTMLTableElement;
-  const dropzone = div.parentElement as HTMLDivElement;
+  try {
+    
+    event.preventDefault();
+    const palletId = event.dataTransfer?.getData('pallet-id') as string;
+    const spotIdFrom = event.dataTransfer?.getData('spot-id') as string;
+    const psId = event.dataTransfer?.getData('ps-id') as string;
+    const draggableElement = document.querySelector(`[data-pallet-id="${palletId}"]`) as HTMLDivElement;
+    const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotIdFrom}"]`)?.children[1] as HTMLTableElement;
   
-  const pId = div.getAttribute('data-pallet-id') as string;
-  if (pId) {
-    alert('Poista ensiksi lavapaikalla oleva lava');
-    return;
+    const div = event.target as HTMLTableElement;
+    const dropzone = div.parentElement as HTMLDivElement;
+    console.log(div);
+    const pId = div.getAttribute('data-pallet-id') as string;
+    if (div.classList.contains('spot-content-text')) {
+      alert('Poista ensiksi lavapaikalla oleva lava');
+      return;
+    }
+    console.log(pId);
+    if (pId ) {
+      alert('Poista ensiksi lavapaikalla oleva lava');
+      return;
+    }
+  
+    const spotDiv = document.createElement('div');
+    spotDiv.classList.add('spot-content-div');
+    const p = document.createElement('p');
+    p.classList.add('spot-content-text');
+  
+    const button = document.createElement('button');
+    button.classList.add('spot-content-button');
+    button.innerHTML = 'Muokkaa';
+    spotDiv.appendChild(p);
+    spotDiv.appendChild(button);
+    draggedFromPalletSpotTd.appendChild(spotDiv);
+    
+    
+    dropzone.replaceChildren(draggableElement);
+    
+    const spotIdTo = dropzone.parentElement?.getAttribute('data-spot-id') as string;
+  
+    console.log(spotIdTo);
+    let palletSpotId = dropzone.getAttribute('data-pallet-spot-id') as string;
+    console.log(palletSpotId);
+    if (!palletSpotId) {
+      const newPS = await addPalletSpot(spotIdTo, palletId);
+      palletSpotId = newPS.id;
+    }
+    dropzone.setAttribute('data-pallet-spot-id', palletSpotId);
+    updatePalletSpot(psId, null as unknown as string);
+    updatePalletSpot(palletSpotId, palletId);
+  } catch (error) {
+    console.log(error);
   }
-
-  const spotDiv = document.createElement('div');
-  spotDiv.classList.add('spot-content-div');
-  const p = document.createElement('p');
-  p.classList.add('spot-content-text');
-
-  const button = document.createElement('button');
-  button.classList.add('spot-content-button');
-  button.innerHTML = 'Muokkaa';
-  spotDiv.appendChild(p);
-  spotDiv.appendChild(button);
-  draggedFromPalletSpotTd.appendChild(spotDiv);
-  
-  
-  dropzone.replaceChildren(draggableElement);
-  
-  const spotIdTo = dropzone.parentElement?.getAttribute('data-spot-id') as string;
-
-  console.log(spotIdTo);
-  let palletSpotId = dropzone.getAttribute('data-pallet-spot-id') as string;
-  console.log(palletSpotId);
-  if (!palletSpotId) {
-    const newPS = await addPalletSpot(spotIdTo, palletId);
-    palletSpotId = newPS.id;
-  }
-  dropzone.setAttribute('data-pallet-spot-id', palletSpotId);
-  updatePalletSpot(psId, null as unknown as string);
-  updatePalletSpot(palletSpotId, palletId);
 
 }
 const dragOver = (event: DragEvent) => {
@@ -602,8 +689,6 @@ addProducts.onclick = () => {
     }
   )
 }
-
-
 
 // if there is rows in the database, populate the form with them
 if (await getRows()) {
@@ -722,7 +807,6 @@ const settings = () => {
 
 settings();
 
-
 // create search function for search form
 const searchForm = document.querySelector('#search-form');
 const searchInput = document.querySelector('#search-input') as HTMLInputElement;
@@ -768,8 +852,6 @@ const search = async (query: string) => {
 
     palletsTableHeadRowCell5.innerHTML = 'Tulopvm';
  
-
-
     palletsTableHeadRow.appendChild(palletsTableHeadRowCell1);
     palletsTableHeadRow.appendChild(palletsTableHeadRowCell2);
     palletsTableHeadRow.appendChild(palletsTableHeadRowCell3);
@@ -785,7 +867,6 @@ const search = async (query: string) => {
     for (let i=0; i < pallets.length; i++) {
 
       const palletSpot = await palletSpotsByPallet(pallets[i].id);
-
 
       // populate pallets table, rowNumber under row, gapNumber under gap, spotNumber under spot
       
@@ -805,11 +886,7 @@ const search = async (query: string) => {
       palletsTableBodyRow.appendChild(palletsTableBodyRowCell3);
       palletsTableBodyRow.appendChild(palletsTableBodyRowCell5);
       palletsTableBody.appendChild(palletsTableBodyRow);
-
-
     }
-
-
   } catch (error) {
     console.log(error);
   }

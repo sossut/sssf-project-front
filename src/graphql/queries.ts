@@ -264,6 +264,29 @@ const createProduct = `mutation CreateProduct($name: String!, $weight: Float!, $
     weight
   }
 }`
+const spotByRowGapQuery = `query SpotByRowGap($spotNumber: Int!, $gapNumber: Int!, $rowNumber: Int!) {
+  spotByRowGap(spotNumber: $spotNumber, gapNumber: $gapNumber, rowNumber: $rowNumber) {
+    spotNumber
+    id
+    gap {
+      gapNumber
+      row {
+        rowNumber
+      }
+    }
+  }
+}`
+const palletSpotBySpotQuery = `query PalletSpotBySpot($spot: ID!) {
+  palletSpotBySpot(spot: $spot) {
+    id
+    pallet {
+      id
+    }
+    spot {
+      id
+    }
+  }
+}`
 export {
   addRow, 
   getAllRows, 
@@ -287,5 +310,7 @@ export {
   palletSpotsByPalletQuery,
   productByCodeQuery,
   updateToPalletSpotShelf,
-  createProduct
+  createProduct,
+  spotByRowGapQuery,
+  palletSpotBySpotQuery
 };
