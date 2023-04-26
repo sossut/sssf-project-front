@@ -452,6 +452,15 @@ const drop = async (event: DragEvent) => {
   const draggableElement = document.querySelector(`[data-pallet-id="${palletId}"]`) as HTMLDivElement;
   const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotIdFrom}"]`)?.children[1] as HTMLTableElement;
 
+  const div = event.target as HTMLTableElement;
+  const dropzone = div.parentElement as HTMLDivElement;
+  
+  const pId = div.getAttribute('data-pallet-id') as string;
+  if (pId) {
+    alert('Poista ensiksi lavapaikalla oleva lava');
+    return;
+  }
+
   const spotDiv = document.createElement('div');
   spotDiv.classList.add('spot-content-div');
   const p = document.createElement('p');
@@ -460,9 +469,6 @@ const drop = async (event: DragEvent) => {
   const button = document.createElement('button');
   button.classList.add('spot-content-button');
   button.innerHTML = 'Muokkaa';
-  const div = event.target as HTMLTableElement;
-
-  const dropzone = div.parentElement as HTMLDivElement;
   spotDiv.appendChild(p);
   spotDiv.appendChild(button);
   draggedFromPalletSpotTd.appendChild(spotDiv);
