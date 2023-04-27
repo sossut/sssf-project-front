@@ -287,6 +287,57 @@ const palletSpotBySpotQuery = `query PalletSpotBySpot($spot: ID!) {
     }
   }
 }`
+const createEmptyPalletSpot = `mutation CreateEmptyPalletSpot($spot: ID!) {
+  createPalletSpot(spot: $spot) {
+    id
+    spot {
+      id
+      spotNumber
+      gap {
+        id
+        gapNumber
+        row {
+          id
+          rowNumber
+        }
+      }
+    }
+    shelf
+    pallet {
+      id
+      products {
+        id
+        code
+      }
+    }
+  }
+}`
+const createSpots = `mutation CreateSpots($numberOfRows: Int!, $rowData: [Int]!) {
+  createSpots(numberOfRows: $numberOfRows, rowData: $rowData) {
+    id
+    spotNumber
+    gap {
+      gapNumber
+      row {
+        rowNumber
+      }
+    }
+  }
+}`
+const createPalletSpots = `mutation CreatePalletSpots($numberOfRows: Int!, $rowData: [Int!]!) {
+  createPalletSpots(numberOfRows: $numberOfRows, rowData: $rowData) {
+    id
+    spot {
+      spotNumber
+      gap {
+        gapNumber
+        row {
+          rowNumber
+        }
+      }
+    }
+  }
+}`
 export {
   addRow, 
   getAllRows, 
@@ -312,5 +363,8 @@ export {
   updateToPalletSpotShelf,
   createProduct,
   spotByRowGapQuery,
-  palletSpotBySpotQuery
+  palletSpotBySpotQuery,
+  createEmptyPalletSpot,
+  createSpots,
+  createPalletSpots
 };

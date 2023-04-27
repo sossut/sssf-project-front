@@ -1,7 +1,7 @@
 import './style.css'
 
 import { doGraphQLFetch } from './graphql/fetch';
-import { addGap, addRow, addSpot, getGaps, updateRow } from './graphql/queries';
+import { addGap, addRow, addSpot, createPalletSpots, createSpots, getGaps, updateRow } from './graphql/queries';
 import { getRows,
   getSpots,
   getSpotById,
@@ -21,14 +21,15 @@ import { getRows,
   palletSpotsByPallet,
   productByCode,
   spotByRowGap,
-  palletSpotBySpot
+  palletSpotBySpot,
+  addEmptyPalleSpot
 } from './graphql/fetches';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-
 // in div warehouse create a table with the number of rows and gaps and spots
 await getSpots();
+
 //create the table
 const warehouse = document.querySelector<HTMLDivElement>('#warehouse') as HTMLDivElement;
 const createTable = async () => {
@@ -86,10 +87,15 @@ const createTable = async () => {
               try {
                 for (let l = 0; l < palletSpots.length; l++) {
                   if (palletSpots[l].spot.id === spots[k].id) {
+
                     td3.setAttribute('data-pallet-spot-id', `${palletSpots[l].id}`);
-                    spotContent.classList.add('draggable');
-                    spotContent.setAttribute('draggable', 'true');
-                    spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
+
+                    if (palletSpots[l].pallet) {
+
+                      spotContent.classList.add('draggable');
+                      spotContent.setAttribute('draggable', 'true');
+                      spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
+                    }
                     for (let m = 0; m < palletSpots[l].pallet.products.length; m++) {
                       if (m === palletSpots[l].pallet.products.length - 1) {
                         spotContentText.innerHTML += `${palletSpots[l].pallet.products[m].code}`;
@@ -273,22 +279,24 @@ spotContentButtons.forEach(button => {
           const palletSpot = await palletSpotBySpot(spotResult.id);
           const spotDiv = document.querySelector(`[data-spot-id="${spotResult.id}"]`);
           const btn = spotDiv?.querySelector('button') as HTMLButtonElement;
-          console.log(btn);
-          if (!palletSpot) {
+          button.parentElement?.removeAttribute('data-pallet-id');
+          
+          btn.parentElement?.setAttribute('data-pallet-id', palletId);
 
-            button.parentElement?.parentElement?.removeAttribute('data-pallet-spot-id');
-            await addPalletSpot(spotResult.id, palletId);
-            await updatePalletSpot(palletSpotId, null as unknown as string);
-            updateTableCell(button);
-            updateTableCell(btn);
-            return;
-          }
+          // if (!palletSpot) {
+
+          //   await addPalletSpot(spotResult.id, palletId);
+          //   await updatePalletSpot(palletSpotId, null as unknown as string);
+          //   updateTableCell(button);
+          //   updateTableCell(btn);
+          //   return;
+          // }
           if (palletSpot.pallet) {
             alert('Paikka on jo varattu');
             //TODO confirm if user wants to delete the old pallet from the spot
             return;
           }
-          button.parentElement?.parentElement?.removeAttribute('data-pallet-spot-id');
+          
           await updatePalletSpot(palletSpot.id, palletId);
           await updatePalletSpot(palletSpotId, null as unknown as string);
           updateTableCell(button);
@@ -418,39 +426,23 @@ spotContentButtons.forEach(button => {
 
 const updateTableCell = async (elem: HTMLButtonElement, array?: Array<String>) => {
   try {
+    console.log('elem', elem);
     const spotId = elem.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
 
-     let palletId = elem.parentElement?.getAttribute('data-pallet-id') as string;
-     const palletSpotId = elem.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
-
+    const palletSpotId = elem.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
+    
     const palletSpot = await getPalletSpotById(palletSpotId);
     const cell = document.querySelector(`[data-spot-id="${spotId}"]`) as HTMLTableElement;
-    if (!palletSpotId) {
-      if (!palletId) {
-        const newPallet = await addPallet(array as string[]);
-        palletId = newPallet.id;
-      }  
-      const newPalletSpot = await addPalletSpot(spotId, palletId);
-      
-      cell.children[1].children[0].children[0].innerHTML = '';
-      cell.children[1].setAttribute('data-pallet-spot-id', `${newPalletSpot.id}`);
-      cell.children[1].children[0].classList.add('draggable');
-      cell.children[1].children[0].setAttribute('draggable', 'true');
-      cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
-      for (let i = 0; i < newPalletSpot.pallet.products.length; i++) {
-        if (i === newPalletSpot.pallet.products.length - 1) {
-          cell.children[1].children[0].children[0].innerHTML += `${newPalletSpot.pallet.products[i].code}`;
-        } else {
-          
-          cell.children[1].children[0].children[0].innerHTML += `${newPalletSpot.pallet.products[i].code}, `;
-        }
-      }
-      return;
-    }
+    let palletId = elem.parentElement?.getAttribute('data-pallet-id') as string;
+ 
+    console.log(elem.parentElement);
 
-    cell.children[1].setAttribute('data-pallet-spot-id', `${palletSpot.id}`);
+    console.log('spotId', spotId);
+    console.log('palletId', palletId);
+    console.log('palletSpotId', palletSpotId);
+
     cell.children[1].children[0].children[0].innerHTML = '';
-    cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
+    // cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
     for (let i = 0; i < palletSpot.pallet.products.length; i++) {
       
       if (i === palletSpot.pallet.products.length - 1) {
@@ -595,99 +587,104 @@ droppableElements.forEach(elem => {
 
 //create modal for adding new products to the database, launch from add-products button
 const modal1 = document.createElement('div');
-const addProducts = document.querySelector('#add-products') as HTMLButtonElement;
-addProducts.onclick = () => {
-  modal1.classList.add('modal');
-  modal1.innerHTML = '';
-
-  const modalContent = document.createElement('div');
-  modalContent.classList.add('modal-content');
-
-  const h3 = document.createElement('h3');
-  h3.innerHTML = 'Lisää tuotteita';
-
-  const closeButton = document.createElement('button');
-  closeButton.classList.add('close-button');
-  closeButton.innerHTML = 'Sulje';
-
-  const form = document.createElement('form');
-  form.classList.add('add-products-form');
-
-  const codeDiv = document.createElement('div');
-  codeDiv.classList.add('input-div');
-
-  const label = document.createElement('label');
-  label.setAttribute('for', 'product-code');
-  label.innerHTML = 'Tuotekoodi';
-
-  const input = document.createElement('input');
-  input.setAttribute('type', 'text');
-  input.setAttribute('id', 'product-code');
-
-  const nameDiv = document.createElement('div');
-  nameDiv.classList.add('input-div');
-
-  const label1 = document.createElement('label');
-  label1.setAttribute('for', 'product-name');
-  label1.innerHTML = 'Tuotteen nimi';
-
-  const input1 = document.createElement('input');
-  input1.setAttribute('type', 'text');
-  input1.setAttribute('id', 'product-name');
-
-  const weightDiv = document.createElement('div');
-  weightDiv.classList.add('input-div');
-
-  const label2 = document.createElement('label');
-  label2.setAttribute('for', 'product-weight');
-  label2.innerHTML = 'Tuotteen paino';
-
-  const input2 = document.createElement('input');
-  input2.setAttribute('type', 'text');
-  input2.setAttribute('id', 'product-weight');
-  input2.value = '0';
-
-  const submitButton = document.createElement('button');
-  submitButton.classList.add('submit-button');
-  submitButton.innerHTML = 'Lisää';
-
-
-  modalContent.appendChild(h3);
+try {
   
-  codeDiv.appendChild(label);
-  codeDiv.appendChild(input);
-  form.appendChild(codeDiv);
-  nameDiv.appendChild(label1);
-  nameDiv.appendChild(input1);
-  form.appendChild(nameDiv);
-  weightDiv.appendChild(label2);
-  weightDiv.appendChild(input2);
-  form.appendChild(weightDiv);
-  form.appendChild(submitButton);
-  modalContent.appendChild(form);
-  modal1.appendChild(modalContent);
-  modalContent.appendChild(closeButton);
-  document.body.appendChild(modal1);
-
-  closeButton.onclick = () => {
-    modal1.remove();
+  const addProducts = document.querySelector('#add-products') as HTMLButtonElement;
+  addProducts.onclick = () => {
+    modal1.classList.add('modal');
+    modal1.innerHTML = '';
+  
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('modal-content');
+  
+    const h3 = document.createElement('h3');
+    h3.innerHTML = 'Lisää tuotteita';
+  
+    const closeButton = document.createElement('button');
+    closeButton.classList.add('close-button');
+    closeButton.innerHTML = 'Sulje';
+  
+    const form = document.createElement('form');
+    form.classList.add('add-products-form');
+  
+    const codeDiv = document.createElement('div');
+    codeDiv.classList.add('input-div');
+  
+    const label = document.createElement('label');
+    label.setAttribute('for', 'product-code');
+    label.innerHTML = 'Tuotekoodi';
+  
+    const input = document.createElement('input');
+    input.setAttribute('type', 'text');
+    input.setAttribute('id', 'product-code');
+  
+    const nameDiv = document.createElement('div');
+    nameDiv.classList.add('input-div');
+  
+    const label1 = document.createElement('label');
+    label1.setAttribute('for', 'product-name');
+    label1.innerHTML = 'Tuotteen nimi';
+  
+    const input1 = document.createElement('input');
+    input1.setAttribute('type', 'text');
+    input1.setAttribute('id', 'product-name');
+  
+    const weightDiv = document.createElement('div');
+    weightDiv.classList.add('input-div');
+  
+    const label2 = document.createElement('label');
+    label2.setAttribute('for', 'product-weight');
+    label2.innerHTML = 'Tuotteen paino';
+  
+    const input2 = document.createElement('input');
+    input2.setAttribute('type', 'text');
+    input2.setAttribute('id', 'product-weight');
+    input2.value = '0';
+  
+    const submitButton = document.createElement('button');
+    submitButton.classList.add('submit-button');
+    submitButton.innerHTML = 'Lisää';
+  
+  
+    modalContent.appendChild(h3);
+    
+    codeDiv.appendChild(label);
+    codeDiv.appendChild(input);
+    form.appendChild(codeDiv);
+    nameDiv.appendChild(label1);
+    nameDiv.appendChild(input1);
+    form.appendChild(nameDiv);
+    weightDiv.appendChild(label2);
+    weightDiv.appendChild(input2);
+    form.appendChild(weightDiv);
+    form.appendChild(submitButton);
+    modalContent.appendChild(form);
+    modal1.appendChild(modalContent);
+    modalContent.appendChild(closeButton);
+    document.body.appendChild(modal1);
+  
+    closeButton.onclick = () => {
+      modal1.remove();
+    }
+  
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        
+        const name = input1.value;
+        const code = input.value;
+        const weight = parseInt(input2.value);
+  
+        await addProduct(code, name, weight);
+  
+      } catch (error) {
+        console.log(error);
+      }
+      }
+    )
   }
-
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    try {
-      
-      const name = input1.value;
-      const code = input.value;
-      const weight = parseInt(input2.value);
-
-      await addProduct(code, name, weight);
-
-    } catch (error) {
-      console.log(error);
-    }
-    }
-  )
+} catch (error) {
+  console.log(error);
 }
 
 // if there is rows in the database, populate the form with them
@@ -712,7 +709,7 @@ if (await getRows()) {
     input2.type = 'submit';
     input2.value = 'Lähetä';
     input2.id = 'submit-rows';
-    input2.disabled = true;
+    // input2.disabled = true;
     form.appendChild(input2);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -725,11 +722,12 @@ if (await getRows()) {
             const gapData = await doGraphQLFetch(apiUrl, addGap, {gapNumber: j +1, row: rows[i].id});
             for (let k = 0; k < gapData.createGap.spots; k++) {
               const spotData = await doGraphQLFetch(apiUrl, addSpot, {spotNumber: k + 1, gap: gapData.createGap.id});
+              await addEmptyPalleSpot(spotData.createSpot.id);
             }
           }
         }
-        localStorage.removeItem('spots');
-        await getSpots();
+
+
       } catch (error) {
         console.log(error);
       }
@@ -775,24 +773,35 @@ const settings = () => {
     form.appendChild(input2);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-
       try {
+        let array = [];
         for (let i = 1; i <= rows; i++) {
           const input = document.querySelector<HTMLInputElement>(`#form-row input[name=row${i}]`) as HTMLInputElement;
-          const rowData = await doGraphQLFetch(apiUrl, addRow, {rowNumber: i, gaps: parseInt(input.value)});
+          array.push(parseInt(input.value));
+        }
+        const rowNumber = parseInt(rows as unknown as string);
+        console.log(typeof rowNumber);
+        await doGraphQLFetch(apiUrl, createPalletSpots, {numberOfRows: rowNumber, rowData: array});
+      // try {
+      //   for (let i = 1; i <= rows; i++) {
+      //     const input = document.querySelector<HTMLInputElement>(`#form-row input[name=row${i}]`) as HTMLInputElement;
+      //     const rowData = await doGraphQLFetch(apiUrl, addRow, {rowNumber: i, gaps: parseInt(input.value)});
           
-        }
-        const dbRows = await getRows();
-        for (let i = 0; i < dbRows.length; i++) {
-          for (let j = 0; j < dbRows[i].gaps; j++) {
-            const gapData = await doGraphQLFetch(apiUrl, addGap, {gapNumber: j + 1, row: dbRows[i].id});
-            for (let k = 0; k < gapData.createGap.spots; k++) {
-              const spotData = await doGraphQLFetch(apiUrl, addSpot, {spotNumber: k + 1, gap: gapData.createGap.id});
-            }
-          }
-        }
+      //   }
+      //   const dbRows = await getRows();
+      //   for (let i = 0; i < dbRows.length; i++) {
+      //     for (let j = 0; j < dbRows[i].gaps; j++) {
+      //       const gapData = await doGraphQLFetch(apiUrl, addGap, {gapNumber: j + 1, row: dbRows[i].id});
+      //       for (let k = 0; k < gapData.createGap.spots; k++) {
+      //         const spotData = await doGraphQLFetch(apiUrl, addSpot, {spotNumber: k + 1, gap: gapData.createGap.id});
+      //         await addEmptyPalleSpot(spotData.createSpot.id);
+      //       }
+      //     }
+      //   }
         localStorage.removeItem('spots');
+
         await getSpots();
+
       } catch (error) {
         console.log(error);
       }

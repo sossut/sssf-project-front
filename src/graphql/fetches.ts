@@ -21,7 +21,8 @@ import {
   getOneSpot, 
   createProduct, 
   spotByRowGapQuery,
-  palletSpotBySpotQuery
+  palletSpotBySpotQuery,
+  createEmptyPalletSpot
 } from './queries';
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -64,7 +65,6 @@ const getSpotById = async (id: string) => {
 
 const getPalletSpots = async () => {
   try {
-
     const palletSpots = await doGraphQLFetch(apiUrl, getAllPalletSpots, {});
 
     if (palletSpots) return palletSpots.palletSpots;
@@ -236,6 +236,18 @@ const palletSpotBySpot = async (spotId: string) => {
     console.log(error);
   }
 }
+const addEmptyPalleSpot = async (spotId: string) => {
+  try {
+    
+    const palletSpot = await doGraphQLFetch(apiUrl, createEmptyPalletSpot, {spot: spotId});
+
+    if (palletSpot) return palletSpot.createPalletSpot;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 export {
   getRows,
   getSpots,
@@ -256,5 +268,6 @@ export {
   palletSpotsByPallet,
   productByCode,
   spotByRowGap,
-  palletSpotBySpot
+  palletSpotBySpot,
+  addEmptyPalleSpot
 }
