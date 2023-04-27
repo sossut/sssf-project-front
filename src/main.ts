@@ -782,22 +782,7 @@ const settings = () => {
         const rowNumber = parseInt(rows as unknown as string);
         console.log(typeof rowNumber);
         await doGraphQLFetch(apiUrl, createPalletSpots, {numberOfRows: rowNumber, rowData: array});
-      // try {
-      //   for (let i = 1; i <= rows; i++) {
-      //     const input = document.querySelector<HTMLInputElement>(`#form-row input[name=row${i}]`) as HTMLInputElement;
-      //     const rowData = await doGraphQLFetch(apiUrl, addRow, {rowNumber: i, gaps: parseInt(input.value)});
-          
-      //   }
-      //   const dbRows = await getRows();
-      //   for (let i = 0; i < dbRows.length; i++) {
-      //     for (let j = 0; j < dbRows[i].gaps; j++) {
-      //       const gapData = await doGraphQLFetch(apiUrl, addGap, {gapNumber: j + 1, row: dbRows[i].id});
-      //       for (let k = 0; k < gapData.createGap.spots; k++) {
-      //         const spotData = await doGraphQLFetch(apiUrl, addSpot, {spotNumber: k + 1, gap: gapData.createGap.id});
-      //         await addEmptyPalleSpot(spotData.createSpot.id);
-      //       }
-      //     }
-      //   }
+
         localStorage.removeItem('spots');
 
         await getSpots();
@@ -912,4 +897,3 @@ try {
 } catch (error) {
   console.log(error);
 }
-
