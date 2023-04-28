@@ -25,7 +25,7 @@ import {
   createEmptyPalletSpot
 } from './queries';
 const apiUrl = import.meta.env.VITE_API_URL;
-
+const token = localStorage.getItem('token') as string;
 const getRows = async () => {
   try {
     const rows = await doGraphQLFetch(apiUrl, getAllRows, {});
@@ -75,7 +75,7 @@ const getPalletSpots = async () => {
 const addPalletSpot = async (spotId: string, palletId: string) => {
   try {
 
-    const palletSpot = await doGraphQLFetch(apiUrl, createNewPalletSpot, {spot: spotId, pallet: palletId});
+    const palletSpot = await doGraphQLFetch(apiUrl, createNewPalletSpot, {spot: spotId, pallet: palletId}, token);
     console.log(palletSpot);
     if (palletSpot) return palletSpot.createPalletSpot;
   } catch (error) {
@@ -85,7 +85,7 @@ const addPalletSpot = async (spotId: string, palletId: string) => {
 const updatePalletSpot = async (psId: string, palletId: string) => {
   try {
 
-    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpot, {updatePalletSpotId: psId, pallet: palletId});
+    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpot, {updatePalletSpotId: psId, pallet: palletId}, token);
     console.log(palletSpot);
     if (palletSpot) return palletSpot.updatePalletSpot;
   } catch (error) {
@@ -95,7 +95,7 @@ const updatePalletSpot = async (psId: string, palletId: string) => {
 const updatePalletSpotShelf = async (psId: string, shelf: boolean) => {
   try {
 
-    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpotShelf, {updatePalletSpotId: psId, shelf: shelf});
+    const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpotShelf, {updatePalletSpotId: psId, shelf: shelf}, token);
 
     if (palletSpot) return palletSpot.updatePalletSpot;
   } catch (error) {
@@ -125,7 +125,7 @@ const getPalletById = async (id: string) => {
 }
 const addPallet = async (products: Array<string>) => {
   try {
-    const pallet = await doGraphQLFetch(apiUrl, createNewPallet, {products: products });
+    const pallet = await doGraphQLFetch(apiUrl, createNewPallet, {products: products }, token);
     if (pallet) return pallet.createPallet;
   } catch (error) {
     console.log(error);
@@ -134,7 +134,7 @@ const addPallet = async (products: Array<string>) => {
 const updatePallet = async (id: string, products: string[]) => {
   try {
 
-    const pallet = await doGraphQLFetch(apiUrl, updateToPallet, {updatePalletId: id, products: products});
+    const pallet = await doGraphQLFetch(apiUrl, updateToPallet, {updatePalletId: id, products: products}, token);
 
     if (pallet) return pallet.updatePallet;
   } catch (error) {
@@ -144,7 +144,7 @@ const updatePallet = async (id: string, products: string[]) => {
 const deletePallet = async (id: string) => {
   try {
 
-    const pallet = await doGraphQLFetch(apiUrl, deletePalletQuery, {deletePalletId: id});
+    const pallet = await doGraphQLFetch(apiUrl, deletePalletQuery, {deletePalletId: id}, token);
 
     if (pallet) return pallet.deletePallet;
   } catch (error) {
@@ -175,7 +175,7 @@ const getProductById = async (id: string) => {
 const addProduct = async (code: string, name: string, weight: number) => {
   try {
 
-    const product = await doGraphQLFetch(apiUrl, createProduct, {name: name, weight: weight, code: code});
+    const product = await doGraphQLFetch(apiUrl, createProduct, {name: name, weight: weight, code: code}, token);
 
     if (product) return product.createProduct;
   }
@@ -239,7 +239,7 @@ const palletSpotBySpot = async (spotId: string) => {
 const addEmptyPalleSpot = async (spotId: string) => {
   try {
     
-    const palletSpot = await doGraphQLFetch(apiUrl, createEmptyPalletSpot, {spot: spotId});
+    const palletSpot = await doGraphQLFetch(apiUrl, createEmptyPalletSpot, {spot: spotId}, token);
 
     if (palletSpot) return palletSpot.createPalletSpot;
   } catch (error) {

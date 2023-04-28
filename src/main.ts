@@ -1,7 +1,7 @@
 import './style.css'
 
 import { doGraphQLFetch } from './graphql/fetch';
-import { addGap, addRow, addSpot, createPalletSpots, createSpots, getGaps, updateRow } from './graphql/queries';
+import { addGap, addSpot, checkToken, createPalletSpots, getGaps, login, updateRow } from './graphql/queries';
 import { getRows,
   getSpots,
   getSpotById,
@@ -24,8 +24,59 @@ import { getRows,
   palletSpotBySpot,
   addEmptyPalleSpot
 } from './graphql/fetches';
+import loginModal from './modals/loginModal';
 
 const apiUrl = import.meta.env.VITE_API_URL;
+
+
+const token = localStorage.getItem('token');
+
+if (token !== null) {
+
+  try {
+    const isTokenValid = await doGraphQLFetch(apiUrl, checkToken, {}, token);
+    if (isTokenValid.checkToken?.message === 'Valid token') {
+      console.log('Token is valid');
+
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+const openLogin = document.querySelector<HTMLButtonElement>('#open-login') as HTMLButtonElement; 
+
+const modal2 = document.createElement('div') as HTMLDivElement;
+openLogin.onclick = () => {
+  const closeButton = document.createElement('button') as HTMLButtonElement;
+  modal2.innerHTML = '';
+  modal2.classList.add('modal');
+  closeButton.classList.add('close-button');
+  closeButton.innerHTML = 'Sulje';
+  
+  closeButton.addEventListener('click', () => {
+    modal2.remove();
+  });
+  modal2.innerHTML += loginModal();
+  modal2.appendChild(closeButton);
+  document.body.appendChild(modal2);
+  const loginForm = document.querySelector<HTMLFormElement>('#login-form') as HTMLFormElement;
+  loginForm.onsubmit = async (e) => {
+    e.preventDefault();
+    const username = document.querySelector<HTMLInputElement>('#username') as HTMLInputElement;
+    const password = document.querySelector<HTMLInputElement>('#password') as HTMLInputElement;
+    try {
+      
+      const loginData = await doGraphQLFetch(apiUrl, login, {username: username.value, password: password.value});
+      setTimeout(() => {
+        modal2.remove();
+      }, 1000);
+
+      localStorage.setItem('token', loginData.loginUser.token);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
 
 // in div warehouse create a table with the number of rows and gaps and spots
 await getSpots();
@@ -327,13 +378,13 @@ spotContentButtons.forEach(button => {
           return;
         }
         
-        if (!palletSpotId && !palletId) {
+        // if (!palletSpotId && !palletId) {
 
           // const pallet = await addPallet(array as string[]);
           // const palletSpot = await addPalletSpot(spotId, pallet.id);
-          updateTableCell(button, array as string[]);
-          return;
-        }
+        //   updateTableCell(button, array as string[]);
+        //   return;
+        // }
         if (array.length !== 0) {
           await updatePallet(palletId, array as string[]);
         } else {
@@ -424,7 +475,7 @@ spotContentButtons.forEach(button => {
   });
 });
 
-const updateTableCell = async (elem: HTMLButtonElement, array?: Array<String>) => {
+const updateTableCell = async (elem: HTMLButtonElement) => {
   try {
     console.log('elem', elem);
     const spotId = elem.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;

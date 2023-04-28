@@ -338,6 +338,19 @@ const createPalletSpots = `mutation CreatePalletSpots($numberOfRows: Int!, $rowD
     }
   }
 }`
+const login = `mutation Login($username: String!, $password: String!) {
+  loginUser(username: $username, password: $password) {
+    token
+    username
+    id
+  }
+}`
+const checkToken = `query Query {
+  checkToken {
+    message
+    token
+  }
+}`
 export {
   addRow, 
   getAllRows, 
@@ -366,5 +379,7 @@ export {
   palletSpotBySpotQuery,
   createEmptyPalletSpot,
   createSpots,
-  createPalletSpots
+  createPalletSpots,
+  login,
+  checkToken
 };
