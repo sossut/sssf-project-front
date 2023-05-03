@@ -44,8 +44,8 @@ if (token !== null) {
   }
 }
 const openLogin = document.querySelector<HTMLButtonElement>('#open-login') as HTMLButtonElement; 
-
 const modal2 = document.createElement('div') as HTMLDivElement;
+
 openLogin.onclick = () => {
   const closeButton = document.createElement('button') as HTMLButtonElement;
   modal2.innerHTML = '';
@@ -77,6 +77,8 @@ openLogin.onclick = () => {
     }
   }
 }
+//TODO add animation to dom loading
+//TODO logout __________________________________________________________________________________________________________
 
 // in div warehouse create a table with the number of rows and gaps and spots
 await getSpots();
@@ -162,7 +164,7 @@ const createTable = async () => {
                 
                 // 
               } catch (error) {
-                console.log(error);
+                
               }
               spotContent.appendChild(spotContentText);
               spotContent.appendChild(spotContentButton);
@@ -334,14 +336,6 @@ spotContentButtons.forEach(button => {
           
           btn.parentElement?.setAttribute('data-pallet-id', palletId);
 
-          // if (!palletSpot) {
-
-          //   await addPalletSpot(spotResult.id, palletId);
-          //   await updatePalletSpot(palletSpotId, null as unknown as string);
-          //   updateTableCell(button);
-          //   updateTableCell(btn);
-          //   return;
-          // }
           if (palletSpot.pallet) {
             alert('Paikka on jo varattu');
             //TODO confirm if user wants to delete the old pallet from the spot
@@ -373,18 +367,11 @@ spotContentButtons.forEach(button => {
 
           const pallet = await addPallet(array as string[]);
 
-          const palletSpot = await updatePalletSpot(palletSpotId, pallet.id);
+          await updatePalletSpot(palletSpotId, pallet.id);
           updateTableCell(button);
           return;
         }
-        
-        // if (!palletSpotId && !palletId) {
 
-          // const pallet = await addPallet(array as string[]);
-          // const palletSpot = await addPalletSpot(spotId, pallet.id);
-        //   updateTableCell(button, array as string[]);
-        //   return;
-        // }
         if (array.length !== 0) {
           await updatePallet(palletId, array as string[]);
         } else {
@@ -548,7 +535,7 @@ const displayProducts = async (list: HTMLUListElement, palletId: string) => {
     }
 
   } catch (error) {
-    console.log(error);
+
   }
 }
 
@@ -714,6 +701,13 @@ try {
     modalContent.appendChild(closeButton);
     document.body.appendChild(modal1);
   
+    //TODO add form for deleting products
+    //a button for opening the form
+    //a form with a list of products and a delete button
+    //a button for deleting the product
+
+
+
     closeButton.onclick = () => {
       modal1.remove();
     }
@@ -731,8 +725,8 @@ try {
       } catch (error) {
         console.log(error);
       }
-      }
-    )
+    
+     });
   }
 } catch (error) {
   console.log(error);
@@ -764,7 +758,7 @@ if (await getRows()) {
     form.appendChild(input2);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
-  
+      //TODO delete old rows and gaps and spots
       try {
         for (let i = 0; i < rows.length; i++) {
           const input = document.querySelector<HTMLInputElement>(`#form-row input[name=row${rows[i].rowNumber}]`) as HTMLInputElement;
@@ -794,7 +788,7 @@ const settings = () => {
   const rowSelect = document.querySelector<HTMLSelectElement>('#select-rows') as HTMLSelectElement;
 
   //loop for a 100 select options
-  for (let i = 1; i <= 100; i++) {
+  for (let i = 1; i <= 30; i++) {
     const option = document.createElement('option');
     option.value = i.toString();
     option.text = i.toString();
@@ -821,6 +815,7 @@ const settings = () => {
     input2.type = 'submit';
     input2.value = 'Lähetä';
     input2.id = 'submit-rows';
+    
     form.appendChild(input2);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();

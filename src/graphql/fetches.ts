@@ -22,10 +22,11 @@ import {
   createProduct, 
   spotByRowGapQuery,
   palletSpotBySpotQuery,
-  createEmptyPalletSpot
+  createEmptyPalletSpot,
+  deleteProductQuery
 } from './queries';
 const apiUrl = import.meta.env.VITE_API_URL;
-const token = localStorage.getItem('token') as string;
+
 const getRows = async () => {
   try {
     const rows = await doGraphQLFetch(apiUrl, getAllRows, {});
@@ -74,7 +75,7 @@ const getPalletSpots = async () => {
 }
 const addPalletSpot = async (spotId: string, palletId: string) => {
   try {
-
+    const token = localStorage.getItem('token') as string;
     const palletSpot = await doGraphQLFetch(apiUrl, createNewPalletSpot, {spot: spotId, pallet: palletId}, token);
     console.log(palletSpot);
     if (palletSpot) return palletSpot.createPalletSpot;
@@ -84,7 +85,7 @@ const addPalletSpot = async (spotId: string, palletId: string) => {
 }
 const updatePalletSpot = async (psId: string, palletId: string) => {
   try {
-
+    const token = localStorage.getItem('token') as string;
     const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpot, {updatePalletSpotId: psId, pallet: palletId}, token);
     console.log(palletSpot);
     if (palletSpot) return palletSpot.updatePalletSpot;
@@ -94,7 +95,7 @@ const updatePalletSpot = async (psId: string, palletId: string) => {
 }
 const updatePalletSpotShelf = async (psId: string, shelf: boolean) => {
   try {
-
+    const token = localStorage.getItem('token') as string;
     const palletSpot = await doGraphQLFetch(apiUrl, updateToPalletSpotShelf, {updatePalletSpotId: psId, shelf: shelf}, token);
 
     if (palletSpot) return palletSpot.updatePalletSpot;
@@ -125,6 +126,7 @@ const getPalletById = async (id: string) => {
 }
 const addPallet = async (products: Array<string>) => {
   try {
+    const token = localStorage.getItem('token') as string;
     const pallet = await doGraphQLFetch(apiUrl, createNewPallet, {products: products }, token);
     if (pallet) return pallet.createPallet;
   } catch (error) {
@@ -133,7 +135,7 @@ const addPallet = async (products: Array<string>) => {
 }
 const updatePallet = async (id: string, products: string[]) => {
   try {
-
+    const token = localStorage.getItem('token') as string;
     const pallet = await doGraphQLFetch(apiUrl, updateToPallet, {updatePalletId: id, products: products}, token);
 
     if (pallet) return pallet.updatePallet;
@@ -143,7 +145,7 @@ const updatePallet = async (id: string, products: string[]) => {
 }
 const deletePallet = async (id: string) => {
   try {
-
+    const token = localStorage.getItem('token') as string;
     const pallet = await doGraphQLFetch(apiUrl, deletePalletQuery, {deletePalletId: id}, token);
 
     if (pallet) return pallet.deletePallet;
@@ -153,7 +155,7 @@ const deletePallet = async (id: string) => {
 }
 const getProducts = async () => {
   try {
-
+    
     const products = await doGraphQLFetch(apiUrl, getAllProducts, {});
 
     if (products) return products.products;
@@ -174,7 +176,7 @@ const getProductById = async (id: string) => {
 
 const addProduct = async (code: string, name: string, weight: number) => {
   try {
-
+    const token = localStorage.getItem('token') as string;
     const product = await doGraphQLFetch(apiUrl, createProduct, {name: name, weight: weight, code: code}, token);
 
     if (product) return product.createProduct;
@@ -238,7 +240,7 @@ const palletSpotBySpot = async (spotId: string) => {
 }
 const addEmptyPalleSpot = async (spotId: string) => {
   try {
-    
+    const token = localStorage.getItem('token') as string;
     const palletSpot = await doGraphQLFetch(apiUrl, createEmptyPalletSpot, {spot: spotId}, token);
 
     if (palletSpot) return palletSpot.createPalletSpot;
@@ -246,7 +248,16 @@ const addEmptyPalleSpot = async (spotId: string) => {
     console.log(error);
   }
 }
+const deleteProduct = async (id: string) => {
+  try {
+    const token = localStorage.getItem('token') as string;
+    const product = await doGraphQLFetch(apiUrl, deleteProductQuery, {deleteProductId: id}, token);
 
+    if (product) return product.deleteProduct;
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 export {
   getRows,

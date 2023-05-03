@@ -351,6 +351,12 @@ const checkToken = `query Query {
     token
   }
 }`
+const deleteProductQuery = `mutation DeleteProduct($deleteProductId: ID!) {
+  deleteProduct(id: $deleteProductId) {
+    id
+    code
+  }
+}`
 export {
   addRow, 
   getAllRows, 
@@ -381,5 +387,6 @@ export {
   createSpots,
   createPalletSpots,
   login,
-  checkToken
+  checkToken,
+  deleteProductQuery
 };
