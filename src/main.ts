@@ -32,12 +32,12 @@ const apiUrl = import.meta.env.VITE_API_URL;
 const token = localStorage.getItem('token');
 
 if (token !== null) {
-
+  
   try {
     const isTokenValid = await doGraphQLFetch(apiUrl, checkToken, {}, token);
     if (isTokenValid.checkToken?.message === 'Valid token') {
       console.log('Token is valid');
-
+      
     }
   } catch (error) {
     console.log(error);
@@ -70,7 +70,7 @@ openLogin.onclick = () => {
       setTimeout(() => {
         modal2.remove();
       }, 1000);
-
+      
       localStorage.setItem('token', loginData.loginUser.token);
     } catch (error) {
       console.log(error);
@@ -78,6 +78,8 @@ openLogin.onclick = () => {
   }
 }
 //TODO add animation to dom loading
+const load = document.querySelector<HTMLDivElement>('#load') as HTMLDivElement;
+
 //TODO logout __________________________________________________________________________________________________________
 
 // in div warehouse create a table with the number of rows and gaps and spots
@@ -185,6 +187,7 @@ const createTable = async () => {
         }
       }
     }
+    load.style.visibility = 'hidden';
   } catch (error) {
     console.log(error)
   }
