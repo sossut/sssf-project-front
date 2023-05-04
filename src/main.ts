@@ -30,19 +30,22 @@ const apiUrl = import.meta.env.VITE_API_URL;
 
 
 const token = localStorage.getItem('token');
+const chckTkn = async () => {
 
-if (token !== null) {
-  
-  try {
-    const isTokenValid = await doGraphQLFetch(apiUrl, checkToken, {}, token);
-    if (isTokenValid.checkToken?.message === 'Valid token') {
-      console.log('Token is valid');
-      
+  if (token !== null) {
+    
+    try {
+      const isTokenValid = await doGraphQLFetch(apiUrl, checkToken, {}, token);
+      if (isTokenValid.checkToken?.message === 'Valid token') {
+        console.log('Token is valid');
+        
+      }
+    } catch (error) {
+      console.log(error);
     }
-  } catch (error) {
-    console.log(error);
   }
 }
+chckTkn();
 const openLogin = document.querySelector<HTMLButtonElement>('#open-login') as HTMLButtonElement; 
 const modal2 = document.createElement('div') as HTMLDivElement;
 try {
@@ -87,7 +90,7 @@ const load = document.querySelector<HTMLDivElement>('#load') as HTMLDivElement;
 //TODO logout __________________________________________________________________________________________________________
 
 // in div warehouse create a table with the number of rows and gaps and spots
-await getSpots();
+getSpots();
 
 //create the table
 const warehouse = document.querySelector<HTMLDivElement>('#warehouse') as HTMLDivElement;
@@ -196,7 +199,7 @@ const createTable = async () => {
     console.log(error)
   }
 }
-await createTable();
+createTable();
 
 // when clicking on the spot-content-button, open pallet.html and pass the spot id to the url
 const spotContentButtons = document.querySelectorAll<HTMLButtonElement>('.spot-content-button');
@@ -763,55 +766,59 @@ try {
 }
 
 // if there is rows in the database, populate the form with them
-if (await getRows()) {
-  try {
-    
-    const form = document.querySelector<HTMLFormElement>('#form-row') as HTMLFormElement;
-    const rows = await getRows();
-    for (let i = 0; i < rows.length; i++) {
-      const label = document.createElement('label');
-      label.htmlFor = `row${rows[i].rowNumber}`;
-      label.innerHTML = `Lavarivi ${rows[i].rowNumber} välit`;
-      const input1 = document.createElement('input');
-      input1.type = 'text';
-      input1.name = `row${rows[i].rowNumber}`;
-      input1.placeholder = `row${rows[i].rowNumber}`;
-      input1.value = rows[i].gaps;
-      form.appendChild(label);
-      form.appendChild(input1);
-    }
-    const input2 = document.createElement('input');
-    input2.type = 'submit';
-    input2.value = 'Lähetä';
-    input2.id = 'submit-rows';
-    input2.disabled = true;
-    form.appendChild(input2);
-    form.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      //TODO delete old rows and gaps and spots
-      try {
-        for (let i = 0; i < rows.length; i++) {
-          const input = document.querySelector<HTMLInputElement>(`#form-row input[name=row${rows[i].rowNumber}]`) as HTMLInputElement;
-          const rowData = await doGraphQLFetch(apiUrl, updateRow, {updateRowId: rows[i].id, gaps: parseInt(input.value)});
-          for (let j = 0; j < rows[i].gaps; j++) {
-            const gapData = await doGraphQLFetch(apiUrl, addGap, {gapNumber: j +1, row: rows[i].id});
-            for (let k = 0; k < gapData.createGap.spots; k++) {
-              const spotData = await doGraphQLFetch(apiUrl, addSpot, {spotNumber: k + 1, gap: gapData.createGap.id});
-              await addEmptyPalleSpot(spotData.createSpot.id);
+const blaa = async () => {
+
+  if (await getRows()) {
+    try {
+      
+      const form = document.querySelector<HTMLFormElement>('#form-row') as HTMLFormElement;
+      const rows = await getRows();
+      for (let i = 0; i < rows.length; i++) {
+        const label = document.createElement('label');
+        label.htmlFor = `row${rows[i].rowNumber}`;
+        label.innerHTML = `Lavarivi ${rows[i].rowNumber} välit`;
+        const input1 = document.createElement('input');
+        input1.type = 'text';
+        input1.name = `row${rows[i].rowNumber}`;
+        input1.placeholder = `row${rows[i].rowNumber}`;
+        input1.value = rows[i].gaps;
+        form.appendChild(label);
+        form.appendChild(input1);
+      }
+      const input2 = document.createElement('input');
+      input2.type = 'submit';
+      input2.value = 'Lähetä';
+      input2.id = 'submit-rows';
+      input2.disabled = true;
+      form.appendChild(input2);
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        //TODO delete old rows and gaps and spots
+        try {
+          for (let i = 0; i < rows.length; i++) {
+            const input = document.querySelector<HTMLInputElement>(`#form-row input[name=row${rows[i].rowNumber}]`) as HTMLInputElement;
+            await doGraphQLFetch(apiUrl, updateRow, {updateRowId: rows[i].id, gaps: parseInt(input.value)});
+            for (let j = 0; j < rows[i].gaps; j++) {
+              const gapData = await doGraphQLFetch(apiUrl, addGap, {gapNumber: j +1, row: rows[i].id});
+              for (let k = 0; k < gapData.createGap.spots; k++) {
+                const spotData = await doGraphQLFetch(apiUrl, addSpot, {spotNumber: k + 1, gap: gapData.createGap.id});
+                await addEmptyPalleSpot(spotData.createSpot.id);
+              }
             }
           }
-        }
-
-
-      } catch (error) {
-        console.log(error);
-      }
   
-    })
-  } catch (error) {
-    console.log(error)
+  
+        } catch (error) {
+          console.log(error);
+        }
+    
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
+blaa();
 const settings = () => {
   try {
     //setting up the warehouse rows

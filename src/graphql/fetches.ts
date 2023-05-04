@@ -280,5 +280,6 @@ export {
   productByCode,
   spotByRowGap,
   palletSpotBySpot,
-  addEmptyPalleSpot
+  addEmptyPalleSpot,
+  deleteProduct
 }
