@@ -45,37 +45,41 @@ if (token !== null) {
 }
 const openLogin = document.querySelector<HTMLButtonElement>('#open-login') as HTMLButtonElement; 
 const modal2 = document.createElement('div') as HTMLDivElement;
-
-openLogin.onclick = () => {
-  const closeButton = document.createElement('button') as HTMLButtonElement;
-  modal2.innerHTML = '';
-  modal2.classList.add('modal');
-  closeButton.classList.add('close-button');
-  closeButton.innerHTML = 'Sulje';
+try {
   
-  closeButton.addEventListener('click', () => {
-    modal2.remove();
-  });
-  modal2.innerHTML += loginModal();
-  modal2.appendChild(closeButton);
-  document.body.appendChild(modal2);
-  const loginForm = document.querySelector<HTMLFormElement>('#login-form') as HTMLFormElement;
-  loginForm.onsubmit = async (e) => {
-    e.preventDefault();
-    const username = document.querySelector<HTMLInputElement>('#username') as HTMLInputElement;
-    const password = document.querySelector<HTMLInputElement>('#password') as HTMLInputElement;
-    try {
-      
-      const loginData = await doGraphQLFetch(apiUrl, login, {username: username.value, password: password.value});
-      setTimeout(() => {
-        modal2.remove();
-      }, 1000);
-      
-      localStorage.setItem('token', loginData.loginUser.token);
-    } catch (error) {
-      console.log(error);
+  openLogin.onclick = () => {
+    const closeButton = document.createElement('button') as HTMLButtonElement;
+    modal2.innerHTML = '';
+    modal2.classList.add('modal');
+    closeButton.classList.add('close-button');
+    closeButton.innerHTML = 'Sulje';
+    
+    closeButton.addEventListener('click', () => {
+      modal2.remove();
+    });
+    modal2.innerHTML += loginModal();
+    modal2.appendChild(closeButton);
+    document.body.appendChild(modal2);
+    const loginForm = document.querySelector<HTMLFormElement>('#login-form') as HTMLFormElement;
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const username = document.querySelector<HTMLInputElement>('#username') as HTMLInputElement;
+      const password = document.querySelector<HTMLInputElement>('#password') as HTMLInputElement;
+      try {
+        
+        const loginData = await doGraphQLFetch(apiUrl, login, {username: username.value, password: password.value});
+        setTimeout(() => {
+          modal2.remove();
+        }, 1000);
+        
+        localStorage.setItem('token', loginData.loginUser.token);
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
+} catch (error) {
+  
 }
 //TODO add animation to dom loading
 const load = document.querySelector<HTMLDivElement>('#load') as HTMLDivElement;
@@ -145,10 +149,10 @@ const createTable = async () => {
 
                     td3.setAttribute('data-pallet-spot-id', `${palletSpots[l].id}`);
 
+                    spotContent.classList.add('draggable');
+                    spotContent.setAttribute('draggable', 'true');
                     if (palletSpots[l].pallet) {
 
-                      spotContent.classList.add('draggable');
-                      spotContent.setAttribute('draggable', 'true');
                       spotContent.setAttribute('data-pallet-id', palletSpots[l].pallet.id);
                     }
                     for (let m = 0; m < palletSpots[l].pallet.products.length; m++) {
@@ -197,8 +201,10 @@ await createTable();
 // when clicking on the spot-content-button, open pallet.html and pass the spot id to the url
 const spotContentButtons = document.querySelectorAll<HTMLButtonElement>('.spot-content-button');
 const modal = document.createElement('div');
-spotContentButtons.forEach(button => {
+
+const buttonFunction = async (button: HTMLButtonElement) => {
   button.addEventListener('click', async () => {
+
     console.log('click');
     
     const palletDiv= button.parentElement;
@@ -224,7 +230,7 @@ spotContentButtons.forEach(button => {
     input.setAttribute('type', 'submit');
     input.setAttribute('value', 'Tallenna');
     input.setAttribute('id', 'save-pallet');
-
+    
     label.innerHTML = 'Tuotteet';
     palletForm.classList.add('pallet-form');
     productsSelect.setAttribute('id', 'products-select');
@@ -243,14 +249,14 @@ spotContentButtons.forEach(button => {
     palletForm.appendChild(input);
     palletForm.appendChild(productsList);
     editPalletDiv.appendChild(palletForm);
-
- 
+    
+    
     editPalletDiv.classList.add('pallet-modal-content');
     
     modalCloseButton.classList.add('close-button');
     modalCloseButton.innerHTML = 'Sulje';
     modalCloseButton.addEventListener('click', () => {
-
+    
       document.body.removeChild(modal);
     }
     );
@@ -258,7 +264,7 @@ spotContentButtons.forEach(button => {
     createPalletSelect(productsSelect);
     modal.appendChild(modalCloseButton);
     document.body.appendChild(modal);
-
+    
     addProductButton.addEventListener('click', async (event) => {
       event.preventDefault();
       try {
@@ -330,7 +336,7 @@ spotContentButtons.forEach(button => {
           const row = parseInt(rowInput.value);
           const gap = parseInt(gapInput.value);
           const spot = parseInt(spotInput.value);
-
+    
           const spotResult = await spotByRowGap(spot, gap, row);
           const palletSpot = await palletSpotBySpot(spotResult.id);
           const spotDiv = document.querySelector(`[data-spot-id="${spotResult.id}"]`);
@@ -338,7 +344,7 @@ spotContentButtons.forEach(button => {
           button.parentElement?.removeAttribute('data-pallet-id');
           
           btn.parentElement?.setAttribute('data-pallet-id', palletId);
-
+    
           if (palletSpot.pallet) {
             alert('Paikka on jo varattu');
             //TODO confirm if user wants to delete the old pallet from the spot
@@ -354,27 +360,27 @@ spotContentButtons.forEach(button => {
         }
       });
     }
-
-
-
+    
+    
+    
     palletForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       try {
-
+    
         const array = [];
         for (let i = 0; i < productsList.children.length; i++) {
           array.push(productsList.children[i].getAttribute('data-id'));
           
         }
         if (!palletId  && palletSpotId) {
-
+    
           const pallet = await addPallet(array as string[]);
-
+    
           await updatePalletSpot(palletSpotId, pallet.id);
           updateTableCell(button);
           return;
         }
-
+    
         if (array.length !== 0) {
           await updatePallet(palletId, array as string[]);
         } else {
@@ -385,7 +391,7 @@ spotContentButtons.forEach(button => {
         console.log(error);
       }
     });
-
+    
     document.addEventListener('click', async (event) => {
       if (event.target instanceof HTMLElement) {
       const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
@@ -395,9 +401,9 @@ spotContentButtons.forEach(button => {
         }
       }
     });
-
+    
     //create a form for editing the palletSpot
-
+    
     const editPalletSpotDiv = document.createElement('div');
     const h31 = document.createElement('h3');
     const editPalletSpotForm = document.createElement('form');
@@ -415,7 +421,7 @@ spotContentButtons.forEach(button => {
     editPalletSpotInputFalse.setAttribute('type', 'radio');
     editPalletSpotInputFalse.setAttribute('name', 'pallet-spot');
     editPalletSpotInputFalse.setAttribute('value', 'false');
-
+    
     
     editPalletSpotSubmit.setAttribute('type', 'submit');
     editPalletSpotSubmit.setAttribute('value', 'Tallenna');
@@ -432,7 +438,7 @@ spotContentButtons.forEach(button => {
     try {
       
       const spot = await getSpotById(spotId);
-
+    
       if (spot.spotNumber === 3) {
         
         modal.appendChild(editPalletSpotDiv);
@@ -447,8 +453,8 @@ spotContentButtons.forEach(button => {
     } catch (error) {
       console.log(error);
     }
-
-
+    
+    
     editPalletSpotForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       try {
@@ -461,9 +467,13 @@ spotContentButtons.forEach(button => {
         console.log(error);
       }
     });
-
   });
+}
+
+spotContentButtons.forEach(button => {
+ buttonFunction(button);
 });
+
 
 const updateTableCell = async (elem: HTMLButtonElement) => {
   try {
@@ -481,7 +491,9 @@ const updateTableCell = async (elem: HTMLButtonElement) => {
     console.log('spotId', spotId);
     console.log('palletId', palletId);
     console.log('palletSpotId', palletSpotId);
-
+    // cell.children[1].children[0].classList.add('draggable');
+    // cell.children[1].children[0].setAttribute('draggable', 'true');
+    cell.children[1].children[0].setAttribute('data-pallet-id', `${palletSpot.pallet.id}`);
     cell.children[1].children[0].children[0].innerHTML = '';
     // cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
     for (let i = 0; i < palletSpot.pallet.products.length; i++) {
@@ -547,26 +559,38 @@ const draggableElements = document.querySelectorAll('.draggable') as NodeListOf<
 const droppableElements = document.querySelectorAll('.droppable') as NodeListOf<HTMLDivElement>;
 
 const dragStart = (event: DragEvent) => {
+  console.log(event.target);
   event.dataTransfer?.setData('pallet-id', (event.target as HTMLDivElement).getAttribute('data-pallet-id') as string);
   const draggableElement = event.target as HTMLDivElement;
   const spotId = draggableElement.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
   const psId = draggableElement.parentElement?.getAttribute('data-pallet-spot-id') as string;
   event.dataTransfer?.setData('ps-id', psId);
   event.dataTransfer?.setData('spot-id', spotId);
+  console.log('start', spotId);
 }
 const drop = async (event: DragEvent) => {
   try {
     
     event.preventDefault();
     const palletId = event.dataTransfer?.getData('pallet-id') as string;
+    console.log('palletId', palletId);
+    if (palletId === 'null') {
+      return;
+    }
+    
+    const div = event.target as HTMLTableElement;
+    const dropzone = div.parentElement as HTMLDivElement;
+    if (div.classList.contains('spot-content-button')) {
+      return;
+    }
     const spotIdFrom = event.dataTransfer?.getData('spot-id') as string;
     const psId = event.dataTransfer?.getData('ps-id') as string;
     const draggableElement = document.querySelector(`[data-pallet-id="${palletId}"]`) as HTMLDivElement;
+
+    console.log(spotIdFrom);
     const draggedFromPalletSpotTd = document.querySelector(`[data-spot-id="${spotIdFrom}"]`)?.children[1] as HTMLTableElement;
-  
-    const div = event.target as HTMLTableElement;
-    const dropzone = div.parentElement as HTMLDivElement;
-    console.log(div);
+    
+
     const pId = div.getAttribute('data-pallet-id') as string;
     if (div.classList.contains('spot-content-text')) {
       alert('Poista ensiksi lavapaikalla oleva lava');
@@ -577,15 +601,17 @@ const drop = async (event: DragEvent) => {
       alert('Poista ensiksi lavapaikalla oleva lava');
       return;
     }
-  
+    
     const spotDiv = document.createElement('div');
     spotDiv.classList.add('spot-content-div');
     const p = document.createElement('p');
     p.classList.add('spot-content-text');
-  
+    
     const button = document.createElement('button');
     button.classList.add('spot-content-button');
+    
     button.innerHTML = 'Muokkaa';
+    buttonFunction(button);
     spotDiv.appendChild(p);
     spotDiv.appendChild(button);
     draggedFromPalletSpotTd.appendChild(spotDiv);
@@ -593,9 +619,10 @@ const drop = async (event: DragEvent) => {
     
     dropzone.replaceChildren(draggableElement);
     
+    
     const spotIdTo = dropzone.parentElement?.getAttribute('data-spot-id') as string;
-  
     console.log(spotIdTo);
+  
     let palletSpotId = dropzone.getAttribute('data-pallet-spot-id') as string;
     console.log(palletSpotId);
     if (!palletSpotId) {
@@ -757,7 +784,7 @@ if (await getRows()) {
     input2.type = 'submit';
     input2.value = 'Lähetä';
     input2.id = 'submit-rows';
-    // input2.disabled = true;
+    input2.disabled = true;
     form.appendChild(input2);
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
@@ -830,7 +857,7 @@ const settings = () => {
         }
         const rowNumber = parseInt(rows as unknown as string);
         console.log(typeof rowNumber);
-        await doGraphQLFetch(apiUrl, createPalletSpots, {numberOfRows: rowNumber, rowData: array});
+        await doGraphQLFetch(apiUrl, createPalletSpots, {numberOfRows: rowNumber, rowData: array}, token as string);
 
         localStorage.removeItem('spots');
 
