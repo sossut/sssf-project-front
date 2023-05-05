@@ -48,6 +48,9 @@ main {
   
   align-items: center;
 }
+#content {
+  margin: 0 auto;
+}
 #warehouse {
     overflow: auto;
     white-space: nowrap;
