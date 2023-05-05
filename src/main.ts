@@ -90,7 +90,7 @@ const load = document.querySelector<HTMLDivElement>('#load') as HTMLDivElement;
 //TODO logout __________________________________________________________________________________________________________
 
 // in div warehouse create a table with the number of rows and gaps and spots
-getSpots();
+await getSpots();
 
 //create the table
 const warehouse = document.querySelector<HTMLDivElement>('#warehouse') as HTMLDivElement;
@@ -199,7 +199,7 @@ const createTable = async () => {
     console.log(error)
   }
 }
-createTable();
+await createTable();
 
 // when clicking on the spot-content-button, open pallet.html and pass the spot id to the url
 const spotContentButtons = document.querySelectorAll<HTMLButtonElement>('.spot-content-button');
