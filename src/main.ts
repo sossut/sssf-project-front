@@ -4,7 +4,7 @@ import { doGraphQLFetch } from './graphql/fetch';
 import { addGap, addSpot, checkToken, createPalletSpots, getGaps, login, updateRow } from './graphql/queries';
 import { getRows,
   getSpots,
-  getSpotById,
+  // getSpotById,
   getPalletSpots,
   addPalletSpot,
   updatePalletSpot,
@@ -25,6 +25,7 @@ import { getRows,
   addEmptyPalleSpot
 } from './graphql/fetches';
 import loginModal from './modals/loginModal';
+import { Product } from './interfaces/Interface';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -211,7 +212,7 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     console.log('click');
     
     const palletDiv= button.parentElement;
-    const spotId = button.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
+    // const spotId = button.parentElement?.parentElement?.parentElement?.getAttribute('data-spot-id') as string;
     const palletSpotId = button.parentElement?.parentElement?.getAttribute('data-pallet-spot-id') as string;
     const palletId = palletDiv?.getAttribute('data-pallet-id') as string;
     // window.location.href = `pallet.html?palletId=${palletId}&palletSpotId=${palletSpotId}&spotId=${spotId}`;
@@ -247,13 +248,39 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     editPalletDiv.appendChild(h3);
     modal.appendChild(editPalletDiv);
     palletForm.appendChild(label);
+    
+    //add a search bar for searching products by code
+    const searchDiv = document.createElement('div');
+    const searchInput = document.createElement('input');
+    const searchButton = document.createElement('button');
+    searchDiv.classList.add('search-div');
+    searchInput.classList.add('search-input');
+    searchButton.classList.add('search-button');
+    searchButton.innerHTML = 'Hae';
+    searchDiv.appendChild(searchInput);
+    searchDiv.appendChild(searchButton);
+    palletForm.appendChild(searchDiv);
+    searchButton.addEventListener('click', async (event) => {
+      event.preventDefault();
+      try {
+        const product = await productByCode(searchInput.value);
+        if (!product) {
+          alert('Tuotetta ei löytynyt');
+          return;
+        }
+        productsSelect.value = product.id;
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
     palletForm.appendChild(productsSelect);
     palletForm.appendChild(addProductButton);
     palletForm.appendChild(input);
     palletForm.appendChild(productsList);
+    
+    
     editPalletDiv.appendChild(palletForm);
-    
-    
     editPalletDiv.classList.add('pallet-modal-content');
     
     modalCloseButton.classList.add('close-button');
@@ -265,6 +292,8 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     );
     displayProducts(productsList, palletId);
     createPalletSelect(productsSelect);
+
+
     modal.appendChild(modalCloseButton);
     document.body.appendChild(modal);
     
@@ -276,7 +305,7 @@ const buttonFunction = async (button: HTMLButtonElement) => {
         const product = await getProductById(productId);
         for (let i = 0; i < productsList.children.length; i++) {
           if (productsList.children[i].getAttribute('data-id') === productId) {
-            console.log('product already on the list');
+            alert('product already on the list');
             return;
           }
         }
@@ -375,21 +404,28 @@ const buttonFunction = async (button: HTMLButtonElement) => {
           array.push(productsList.children[i].getAttribute('data-id'));
           
         }
+        // if (array.length === 0) {
+        //   alert('Lavalla pitää olla vähintään yksi tuote');
+        //   return;
+        // }
         if (!palletId  && palletSpotId) {
-    
+          
           const pallet = await addPallet(array as string[]);
-    
+          
           await updatePalletSpot(palletSpotId, pallet.id);
           updateTableCell(button);
           return;
         }
-    
+        
         if (array.length !== 0) {
           await updatePallet(palletId, array as string[]);
         } else {
           await deletePallet(palletId);
         }
         updateTableCell(button);
+
+        document.body.removeChild(modal);
+
       } catch (error) {
         console.log(error);
       }
@@ -407,8 +443,8 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     
     //create a form for editing the palletSpot
     
-    const editPalletSpotDiv = document.createElement('div');
-    const h31 = document.createElement('h3');
+    // const editPalletSpotDiv = document.createElement('div');
+    // const h31 = document.createElement('h3');
     const editPalletSpotForm = document.createElement('form');
     const editPalletSpotLabelTrue = document.createElement('label');
     const editPalletSpotInputTrue = document.createElement('input');
@@ -429,33 +465,33 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     editPalletSpotSubmit.setAttribute('type', 'submit');
     editPalletSpotSubmit.setAttribute('value', 'Tallenna');
     editPalletSpotSubmit.setAttribute('id', 'save-pallet-spot');
-    h31.innerHTML = 'Muokkaa paikkaa';
-    editPalletSpotDiv.classList.add('edit-pallet-spot-modal-content');
-    editPalletSpotDiv.appendChild(h31);
-    editPalletSpotForm.appendChild(editPalletSpotLabelTrue);
-    editPalletSpotForm.appendChild(editPalletSpotInputTrue);
-    editPalletSpotForm.appendChild(editPalletSpotLabelFalse);
-    editPalletSpotForm.appendChild(editPalletSpotInputFalse);
-    editPalletSpotForm.appendChild(editPalletSpotSubmit);
-    editPalletSpotDiv.appendChild(editPalletSpotForm);
-    try {
+    // h31.innerHTML = 'Muokkaa paikkaa';
+    // editPalletSpotDiv.classList.add('edit-pallet-spot-modal-content');
+    // editPalletSpotDiv.appendChild(h31);
+    // editPalletSpotForm.appendChild(editPalletSpotLabelTrue);
+    // editPalletSpotForm.appendChild(editPalletSpotInputTrue);
+    // editPalletSpotForm.appendChild(editPalletSpotLabelFalse);
+    // editPalletSpotForm.appendChild(editPalletSpotInputFalse);
+    // editPalletSpotForm.appendChild(editPalletSpotSubmit);
+    // editPalletSpotDiv.appendChild(editPalletSpotForm);
+    // try {
       
-      const spot = await getSpotById(spotId);
+    //   const spot = await getSpotById(spotId);
     
-      if (spot.spotNumber === 3) {
+    //   if (spot.spotNumber === 4) {
         
-        modal.appendChild(editPalletSpotDiv);
-      }
-      const palletSpot = await getPalletSpotById(palletSpotId);
+    //     modal.appendChild(editPalletSpotDiv);
+    //   }
+    //   const palletSpot = await getPalletSpotById(palletSpotId);
       
-      if (!palletSpot.shelf) {
-        editPalletSpotInputFalse.checked = true;
-      } else {
-        editPalletSpotInputTrue.checked = true;
-      }
-    } catch (error) {
-      console.log(error);
-    }
+    //   if (!palletSpot.shelf) {
+    //     editPalletSpotInputFalse.checked = true;
+    //   } else {
+    //     editPalletSpotInputTrue.checked = true;
+    //   }
+    // } catch (error) {
+    //   console.log(error);
+    // }
     
     
     editPalletSpotForm.addEventListener('submit', async (event) => {
@@ -476,7 +512,6 @@ const buttonFunction = async (button: HTMLButtonElement) => {
 spotContentButtons.forEach(button => {
  buttonFunction(button);
 });
-
 
 const updateTableCell = async (elem: HTMLButtonElement) => {
   try {
@@ -518,7 +553,16 @@ const updateTableCell = async (elem: HTMLButtonElement) => {
 const createPalletSelect = async (select: HTMLSelectElement) => {
   try {
     const products = await getProducts();
-
+    //sort the products based on product code
+    products.sort((a: Product, b: Product) => {
+      if (a.code > b.code) {
+        return 1;
+      }
+      if (a.code < b.code) {
+        return -1;
+      }
+      return 0;
+    });
     for (let i = 0; i < products.length; i++) {
       const option = document.createElement('option');
       option.value = products[i].id;
