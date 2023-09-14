@@ -398,33 +398,44 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     palletForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       try {
-    
+        
+        document.body.removeChild(modal);
         const array = [];
         for (let i = 0; i < productsList.children.length; i++) {
           array.push(productsList.children[i].getAttribute('data-id'));
           
         }
-        // if (array.length === 0) {
-        //   alert('Lavalla pitää olla vähintään yksi tuote');
-        //   return;
-        // }
-        if (!palletId  && palletSpotId) {
+        if (array.length === 0) {
+          await deletePallet(palletId);
+          updateTableCell(button);
+          palletDiv?.removeAttribute('data-pallet-id');
+          return;
+        } else {
+          await updatePallet(palletId, array as string[]);
+        }
+        updateTableCell(button);
+        if (!palletId) {
           
           const pallet = await addPallet(array as string[]);
           
           await updatePalletSpot(palletSpotId, pallet.id);
+          if (pallet.products.length === 0) {
+            await deletePallet(pallet.id);
+            updateTableCell(button);
+            palletDiv?.removeAttribute('data-pallet-id');
+            return;
+          }
           updateTableCell(button);
           return;
         }
         
-        if (array.length !== 0) {
-          await updatePallet(palletId, array as string[]);
-        } else {
-          await deletePallet(palletId);
-        }
-        updateTableCell(button);
+        // if (array.length !== 0) {
+        //   await updatePallet(palletId, array as string[]);
+        // } else {
+        //   await deletePallet(palletId);
+        // }
+        // updateTableCell(button);
 
-        document.body.removeChild(modal);
 
       } catch (error) {
         console.log(error);
@@ -432,12 +443,17 @@ const buttonFunction = async (button: HTMLButtonElement) => {
     });
     
     document.addEventListener('click', async (event) => {
-      if (event.target instanceof HTMLElement) {
-      const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
-        if (deletePalletProductButton) {
-          const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
-          productsList.removeChild(li);
+      try {
+        if (event.target instanceof HTMLElement) {
+        const deletePalletProductButton = event.target.closest('.pallet-product-delete-button');
+          if (deletePalletProductButton) {
+            const li = deletePalletProductButton.parentElement?.parentElement as HTMLLIElement;
+            productsList.removeChild(li);
+          }
         }
+        
+      } catch (error) {
+        console.log(error);
       }
     });
     
@@ -523,7 +539,14 @@ const updateTableCell = async (elem: HTMLButtonElement) => {
     const palletSpot = await getPalletSpotById(palletSpotId);
     const cell = document.querySelector(`[data-spot-id="${spotId}"]`) as HTMLTableElement;
     let palletId = elem.parentElement?.getAttribute('data-pallet-id') as string;
- 
+    
+    const ps = await getPalletSpotById(palletSpotId);
+
+    if (ps.pallet === null) {
+
+      cell.children[1].children[0].children[0].innerHTML = '';
+      return;
+    }
     console.log(elem.parentElement);
 
     console.log('spotId', spotId);
@@ -534,6 +557,7 @@ const updateTableCell = async (elem: HTMLButtonElement) => {
     cell.children[1].children[0].setAttribute('data-pallet-id', `${palletSpot.pallet.id}`);
     cell.children[1].children[0].children[0].innerHTML = '';
     // cell.children[1].children[0].setAttribute('data-pallet-id', `${palletId}`);
+    console.log('palletSpot.pallet.products', palletSpot.pallet.products);
     for (let i = 0; i < palletSpot.pallet.products.length; i++) {
       
       if (i === palletSpot.pallet.products.length - 1) {
